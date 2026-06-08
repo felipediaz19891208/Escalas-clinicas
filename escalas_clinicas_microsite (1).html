@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Escalas clínicas · Medicina Interna</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ffffff; --ink:#1c241e; --ink-soft:#55615a; --ink-faint:#8f9a91;
+    --line:#e8e7dd; --line-strong:#d3d2c4; --rule:#b07d1f;
+    --card:#ffffff; --tint:#f6f4ea; --head:#eef1e6;
+    --green:#1f6f47; --green-b:#e6efe4; --green-d:#114730;
+    --amber:#8a5912; --amber-b:#f2e7cb;
+    --red:#9d392b; --red-b:#f0ddd5;
+    --info:#3b6d5d; --info-b:#e6efea;
+    --sans:'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+    --serif:'Fraunces', Georgia, serif;
+    --mono:'IBM Plex Mono', ui-monospace, monospace;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{font-family:var(--sans); color:var(--ink); line-height:1.5; background:var(--bg); -webkit-font-smoothing:antialiased;}
+
+  .topbar{border-top:3px solid var(--rule); background:rgba(255,255,255,.92); backdrop-filter:blur(6px);
+    padding:14px 24px; display:flex; align-items:center; justify-content:space-between;
+    border-bottom:1px solid var(--line); position:sticky; top:0; z-index:30;}
+  .brand .name{font-family:var(--serif); font-weight:600; font-size:1.18rem; letter-spacing:-.01em; color:var(--green-d);}
+  .brand .sub{font-size:.68rem; letter-spacing:.22em; text-transform:uppercase; color:var(--ink-faint); font-weight:600;}
+  .topbar .search{flex:0 1 280px;}
+  .topbar input.find{width:100%; font:inherit; font-size:.88rem; padding:8px 12px; border:1.5px solid var(--line-strong); border-radius:9px; background:var(--tint);}
+  .topbar input.find:focus{outline:none; border-color:var(--green);}
+
+  .layout{display:flex; max-width:1180px; margin:0 auto; align-items:flex-start;}
+  nav{width:260px; flex:0 0 auto; padding:20px 14px 50px; position:sticky; top:60px; max-height:calc(100vh - 60px); overflow:auto;}
+  nav .grp{font-size:.64rem; letter-spacing:.16em; text-transform:uppercase; color:var(--green-d); font-weight:700; margin:16px 10px 6px; padding-top:10px; border-top:1px solid var(--line);}
+  nav .grp:first-child{margin-top:0; border-top:none; padding-top:0;}
+  nav button{display:block; width:100%; text-align:left; font:inherit; cursor:pointer; background:none; border:none;
+    border-radius:8px; padding:8px 11px; margin-bottom:1px; color:var(--ink-soft); font-size:.88rem; font-weight:500; transition:.13s;}
+  nav button:hover{background:var(--tint);}
+  nav button.active{background:var(--green); color:#fff; font-weight:600;}
+
+  main{flex:1; padding:26px 30px 80px; min-width:0;}
+  .tool{display:none; animation:rise .3s ease;}
+  .tool.show{display:block;}
+  .tool .cat{font-size:.68rem; letter-spacing:.16em; text-transform:uppercase; color:var(--rule); font-weight:700;}
+  .tool h1{font-family:var(--serif); font-weight:500; font-size:1.7rem; letter-spacing:-.01em; margin:.16em 0 .22em; color:var(--green-d);}
+  .tool .desc{color:var(--ink-soft); font-size:.9rem; max-width:62ch; margin-bottom:14px;}
+  .note{background:var(--tint); border-left:3px solid var(--rule); border-radius:0 8px 8px 0; padding:10px 14px; font-size:.83rem; color:var(--ink-soft); max-width:62ch; margin-bottom:20px; line-height:1.55;}
+  .note b{color:var(--green-d);}
+
+  .panel{display:grid; grid-template-columns:1.25fr .9fr; gap:20px; align-items:start;}
+  .inputs{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:8px 20px; box-shadow:0 10px 26px -24px rgba(0,0,0,.3);}
+  .field{padding:11px 0; border-bottom:1px dashed var(--line); display:flex; justify-content:space-between; align-items:center; gap:14px;}
+  .field:last-child{border-bottom:none;}
+  .field label{font-size:.9rem; font-weight:500;}
+  .field .hint{display:block; font-size:.74rem; color:var(--ink-faint); font-weight:400; margin-top:1px;}
+  select, input[type=number]{font:inherit; font-size:.88rem; color:var(--ink); background:#fff; border:1.5px solid var(--line-strong); border-radius:8px; padding:7px 9px;}
+  select{max-width:230px;} input[type=number]{width:92px; text-align:right;}
+  select:focus, input:focus{outline:none; border-color:var(--green);}
+
+  .toggle{position:relative; width:44px; height:25px; flex:0 0 auto;}
+  .toggle input{position:absolute; inset:0; width:100%; height:100%; margin:0; opacity:0; cursor:pointer; z-index:2;}
+  .toggle .track{position:absolute; inset:0; background:#dde7e1; border:1px solid var(--line-strong); border-radius:99px; transition:.18s;}
+  .toggle .track::after{content:""; position:absolute; top:2px; left:2px; width:19px; height:19px; background:#fff; border-radius:50%; box-shadow:0 1px 3px rgba(0,0,0,.2); transition:.18s;}
+  .toggle input:checked + .track{background:var(--green);}
+  .toggle input:checked + .track::after{transform:translateX(19px);}
+
+  .result{position:sticky; top:78px; background:var(--card); border:1px solid var(--line); border-radius:12px; overflow:hidden;
+    box-shadow:0 10px 26px -22px rgba(0,0,0,.3); border-top:3px solid var(--rc,var(--green));}
+  .result .score{padding:22px 20px 4px; text-align:center;}
+  .result .big{font-family:var(--serif); font-size:3rem; font-weight:500; line-height:1; color:var(--rc,var(--green));}
+  .result .unit{font-size:.9rem; color:var(--ink-soft); margin-top:2px;}
+  .result .tier{margin:10px 20px 0; text-align:center; font-weight:700; font-size:.78rem; letter-spacing:.04em; text-transform:uppercase; padding:7px; border-radius:8px; background:var(--rcb,var(--green-b)); color:var(--rc,var(--green));}
+  .result .interp{padding:15px 20px 20px; font-size:.86rem; line-height:1.55;}
+  .result .interp b{color:var(--rc,var(--green-d));}
+
+  /* reference panels */
+  .refbox{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:6px 24px 20px; box-shadow:0 10px 26px -24px rgba(0,0,0,.3); max-width:760px;}
+  .refbox h3{font-family:var(--serif); font-weight:600; font-size:1.08rem; color:var(--green-d); margin:18px 0 8px;}
+  .refbox p{font-size:.9rem; margin-bottom:8px;}
+  .refbox ul{list-style:none; margin:6px 0 10px;}
+  .refbox ul li{padding:6px 0; border-bottom:1px dashed var(--line); display:flex; gap:9px; font-size:.89rem;}
+  .refbox ul li:last-child{border-bottom:none;}
+  .refbox ul li::before{content:""; width:7px; height:7px; border-radius:50%; background:var(--green); margin-top:7px; flex:0 0 auto;}
+  .cat-row{display:flex; gap:12px; padding:9px 0; border-bottom:1px solid var(--line); align-items:baseline;}
+  .cat-row:last-child{border-bottom:none;}
+  .cat-row .k{font-family:var(--serif); font-weight:600; color:var(--green); flex:0 0 70px;}
+  .cat-row .v{font-size:.88rem;}
+  .pill{display:inline-block; font-size:.72rem; font-weight:600; padding:3px 9px; border-radius:99px; background:var(--green-b); color:var(--green-d); margin-right:5px;}
+  .pill.red{background:var(--red-b); color:var(--red);} .pill.amber{background:var(--amber-b); color:var(--amber);}
+  .two{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
+  .two .col h4{font-size:.74rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); font-weight:700; margin-bottom:6px;}
+
+  footer{max-width:1180px; margin:0 auto; padding:0 30px 40px;}
+  footer p{font-size:.74rem; color:var(--ink-faint); border-top:1px solid var(--line); padding-top:14px; line-height:1.6;}
+
+  @keyframes rise{from{opacity:0; transform:translateY(7px);} to{opacity:1; transform:none;}}
+  @media (max-width:880px){
+    .layout{flex-direction:column;}
+    nav{width:100%; position:static; max-height:none; padding:12px; display:flex; gap:6px; overflow-x:auto; white-space:nowrap;}
+    nav .grp{display:none;}
+    nav button{width:auto; flex:0 0 auto; border:1px solid var(--line); background:var(--tint);}
+    nav button.active{background:var(--green);}
+    main{padding:16px; width:100%;}
+    .panel{grid-template-columns:1fr;} .result{position:static;}
+    .two{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+  <div id="jsnotice" style="background:#f2e7cb;color:#7a5212;border-bottom:1px solid #e0cf9e;padding:12px 16px;font-family:system-ui,-apple-system,sans-serif;font-size:14px;line-height:1.5;text-align:center;">
+    Si abajo solo ves el encabezado y no aparecen las calculadoras, estás en el visor interno de una app (p. ej. WhatsApp). Toca el botón de <b>compartir</b> o <b>⋯</b> y elige <b>"Abrir en el navegador"</b> (Safari / Chrome). Una vez en el navegador funciona en cualquier dispositivo.
+  </div>
+  <div class="topbar">
+    <div class="brand"><div class="name">Felipe Díaz</div><div class="sub">Medicina Interna · Escalas clínicas</div></div>
+    <div class="search"><input class="find" id="find" placeholder="Buscar escala…"></div>
+  </div>
+
+  <div class="layout">
+    <nav id="nav"></nav>
+    <main id="main"></main>
+  </div>
+
+  <footer><p id="footnote"></p></footer>
+
+<script>
+/* ===== Helpers ===== */
+const C={low:'var(--green)',mid:'var(--amber)',high:'var(--red)',info:'var(--info)'};
+const CB={low:'var(--green-b)',mid:'var(--amber-b)',high:'var(--red-b)',info:'var(--info-b)'};
+const ln=x=>Math.log(x);
+const clamp=(x,a,b)=>Math.min(Math.max(x,a),b);
+
+/* ===== DATA ===== */
+const DATA=[
+{group:'Cardiología', tools:[
+
+ {id:'chadsva', name:'CHA₂DS₂-VA', sub:'FA · riesgo tromboembólico (ESC 2024)',
+  desc:'Versión 2024 que retira el sexo. Componentes: ICC, HTA, edad ≥75 (2), diabetes, ACV/AIT/TE previo (2), enfermedad vascular, edad 65–74. Máximo 8.',
+  kind:'sum', items:[
+   {l:'Edad', opts:[['< 65',0],['65–74',1],['≥ 75 (2 pts)',2]]},
+   {l:'Insuficiencia cardiaca / disfunción VI', p:1},
+   {l:'Hipertensión', p:1},
+   {l:'Diabetes', p:1},
+   {l:'ACV / AIT / tromboembolismo previo', h:'2 puntos', p:2},
+   {l:'Enfermedad vascular', h:'IAM, EAP, placa aórtica', p:1}],
+  interp:t=>{ if(t===0)return{tier:'Riesgo muy bajo',color:'low',html:'No se recomienda anticoagulación.'};
+   if(t===1)return{tier:'Riesgo bajo-moderado',color:'mid',html:'Anticoagulación <b>a considerar</b> (recomendación IIa), independiente del sexo.'};
+   return{tier:'Riesgo alto',color:'high',html:'<b>Anticoagulación recomendada</b> (preferir DOAC) salvo contraindicación.'};}},
+
+ {id:'hasbled', name:'HAS-BLED', sub:'Riesgo de sangrado en anticoagulados',
+  desc:'Un puntaje alto invita a corregir factores modificables, no a suspender la anticoagulación.',
+  kind:'sum', items:[
+   {l:'HTA no controlada', h:'PAS > 160', p:1},{l:'Función renal alterada', p:1},{l:'Función hepática alterada', p:1},
+   {l:'ACV previo', p:1},{l:'Sangrado previo o predisposición', p:1},{l:'INR lábil', h:'en AVK', p:1},
+   {l:'Edad > 65 años', p:1},{l:'Fármacos', h:'antiagregantes / AINE', p:1},{l:'Alcohol', h:'≥8 tragos/sem', p:1}],
+  interp:t=>t<=2?{tier:'Riesgo bajo-moderado',color:'low',html:'Anticoagulación habitualmente segura con seguimiento estándar.'}
+   :{tier:'Riesgo alto (≥3)',color:'high',html:'Mayor riesgo de sangrado. <b>No contraindica anticoagular</b>: corrija factores modificables y aumente la vigilancia.'}},
+
+ {id:'heart', name:'HEART score', sub:'Dolor torácico en urgencias',
+  desc:'Estima el riesgo de evento cardiaco mayor (MACE) a 6 semanas en dolor torácico.',
+  note:'<b>Factores de riesgo cardiovascular (para el ítem correspondiente):</b> hipertensión, dislipidemia, diabetes mellitus, tabaquismo (actual o cese &lt; 3 meses), antecedente familiar de enfermedad coronaria precoz y obesidad (IMC &gt; 30). El antecedente de <b>enfermedad aterosclerótica conocida</b> (IAM previo, revascularización coronaria, ACV/AIT o enfermedad arterial periférica) asigna automáticamente 2 puntos.',
+  kind:'sum', items:[
+   {l:'Historia clínica', opts:[['Poco sospechosa',0],['Moderadamente sospechosa',1],['Muy sospechosa',2]]},
+   {l:'ECG', opts:[['Normal',0],['Alteración inespecífica de la repolarización',1],['Desviación significativa del ST',2]]},
+   {l:'Edad', opts:[['< 45 años',0],['45–64 años',1],['≥ 65 años',2]]},
+   {l:'Factores de riesgo', opts:[['Ninguno',0],['1–2 factores',1],['≥ 3 factores o enf. ateroscler. conocida',2]]},
+   {l:'Troponina', opts:[['≤ límite normal',0],['1–3× el límite normal',1],['> 3× el límite normal',2]]}],
+  interp:t=>{ if(t<=3)return{tier:'Bajo riesgo',color:'low',html:'MACE ≈ 1.7%. Considere alta precoz con seguimiento.'};
+   if(t<=6)return{tier:'Riesgo intermedio',color:'mid',html:'MACE ≈ 12–17%. Observación, troponinas seriadas y pruebas.'};
+   return{tier:'Riesgo alto',color:'high',html:'MACE ≈ 50%. Estrategia invasiva / ingreso.'};}},
+
+ {id:'grace', name:'GRACE', sub:'Riesgo en síndrome coronario agudo',
+  desc:'Riesgo de mortalidad intrahospitalaria en SCA (tabla de puntos del registro GRACE).',
+  kind:'sum', items:[
+   {l:'Edad', opts:[['≤30',0],['30–39',8],['40–49',25],['50–59',41],['60–69',58],['70–79',75],['80–89',91],['≥90',100]]},
+   {l:'Frecuencia cardiaca', opts:[['≤50',0],['50–69',3],['70–89',9],['90–109',15],['110–149',24],['150–199',38],['≥200',46]]},
+   {l:'PAS (mmHg)', opts:[['≤80',58],['80–99',53],['100–119',43],['120–139',34],['140–159',24],['160–199',10],['≥200',0]]},
+   {l:'Creatinina (mg/dL)', opts:[['0–0.39',1],['0.4–0.79',4],['0.8–1.19',7],['1.2–1.59',10],['1.6–1.99',13],['2.0–3.99',21],['≥4',28]]},
+   {l:'Killip', opts:[['I (sin falla)',0],['II',20],['III',39],['IV',59]]},
+   {l:'Paro cardiaco al ingreso', p:39},{l:'Desviación del segmento ST', p:28},{l:'Enzimas cardiacas elevadas', p:14}],
+  interp:t=>{ if(t<=108)return{tier:'Bajo riesgo',color:'low',html:'Mortalidad intrahospitalaria < 1%.'};
+   if(t<=140)return{tier:'Riesgo intermedio',color:'mid',html:'Mortalidad intrahospitalaria 1–3%.'};
+   return{tier:'Riesgo alto',color:'high',html:'Mortalidad intrahospitalaria > 3%. Favorece estrategia invasiva temprana.'};}},
+
+ {id:'ehra', name:'EHRA (síntomas FA)', sub:'Escala modificada de síntomas',
+  desc:'Clasifica la carga sintomática de la fibrilación auricular.',
+  kind:'classify', options:[
+   {l:'Clase 1 — Sin síntomas',color:'low',html:'La FA no causa síntomas.'},
+   {l:'Clase 2a — Síntomas leves',color:'low',html:'No afecta la actividad diaria.'},
+   {l:'Clase 2b — Síntomas moderados',color:'mid',html:'No limita la actividad diaria, pero el paciente está molesto por los síntomas.'},
+   {l:'Clase 3 — Síntomas severos',color:'high',html:'Actividad diaria afectada.'},
+   {l:'Clase 4 — Incapacitante',color:'high',html:'Actividad diaria normal interrumpida.'}]},
+
+ {id:'killip', name:'Killip-Kimball', sub:'Falla cardiaca en IAM',
+  desc:'Estratifica la insuficiencia cardiaca clínica en el infarto agudo.',
+  kind:'classify', options:[
+   {l:'Clase I — Sin signos de falla',color:'low',html:'Sin estertores ni S3. Mortalidad ≈ 6%.'},
+   {l:'Clase II — Estertores / S3 / congestión',color:'mid',html:'Estertores en <50% de los campos, S3, ingurgitación yugular. Mortalidad ≈ 17%.'},
+   {l:'Clase III — Edema agudo de pulmón',color:'high',html:'Estertores en >50% de los campos. Mortalidad ≈ 30–40%.'},
+   {l:'Clase IV — Shock cardiogénico',color:'high',html:'Hipotensión, hipoperfusión. Mortalidad ≈ 60–80%.'}]},
+
+ {id:'ccs', name:'CCS angina', sub:'Angina estable (Canadian Cardiovascular Society)',
+  desc:'Gradúa la limitación funcional por angina de esfuerzo.',
+  kind:'classify', options:[
+   {l:'Clase I — Solo esfuerzo extenuante',color:'low',html:'La actividad física ordinaria no causa angina.'},
+   {l:'Clase II — Limitación ligera',color:'mid',html:'Angina al subir escaleras rápido, caminar cuesta arriba, tras comidas, frío o estrés.'},
+   {l:'Clase III — Limitación marcada',color:'high',html:'Angina al caminar 1–2 cuadras o subir un piso a paso normal.'},
+   {l:'Clase IV — Cualquier actividad / reposo',color:'high',html:'Incapacidad para cualquier actividad sin angina; puede aparecer en reposo.'}]},
+
+ {id:'nyha', name:'NYHA (disnea / falla cardiaca)', sub:'Clase funcional',
+  desc:'Clasifica la limitación funcional por insuficiencia cardiaca.',
+  kind:'classify', options:[
+   {l:'Clase I — Sin limitación',color:'low',html:'Actividad ordinaria sin síntomas.'},
+   {l:'Clase II — Limitación leve',color:'mid',html:'Cómodo en reposo; actividad ordinaria causa disnea/fatiga.'},
+   {l:'Clase III — Limitación marcada',color:'high',html:'Cómodo en reposo; actividad menor a la ordinaria causa síntomas.'},
+   {l:'Clase IV — Síntomas en reposo',color:'high',html:'Síntomas con cualquier actividad o en reposo.'}]},
+
+ {id:'stemilysis', name:'Fibrinólisis en IAMCEST', sub:'Indicaciones y contraindicaciones',
+  desc:'Referencia rápida para trombólisis en infarto con elevación del ST cuando la angioplastia primaria no está disponible en tiempo.',
+  kind:'ref', html:`
+   <h3>Indicación</h3>
+   <ul><li>IAMCEST dentro de las primeras 12 h de síntomas, cuando no se puede realizar ICP primaria en ≤120 min desde el diagnóstico (idealmente fibrinólisis en ≤10 min del diagnóstico).</li>
+   <li>Considerar hasta 12 h; beneficio mayor en las primeras 2–3 h.</li></ul>
+   <h3>Contraindicaciones absolutas</h3>
+   <ul><li>Hemorragia intracraneal previa (en cualquier momento) o ACV de origen desconocido.</li>
+   <li>ACV isquémico en los últimos 6 meses.</li><li>Neoplasia o malformación vascular del SNC.</li>
+   <li>Trauma/cirugía mayor o TEC importante en las últimas 3 semanas.</li>
+   <li>Sangrado gastrointestinal en el último mes.</li><li>Sangrado activo o diátesis hemorrágica conocida.</li>
+   <li>Disección aórtica.</li><li>Punción no compresible en 24 h (p. ej. biopsia hepática, punción lumbar).</li></ul>
+   <h3>Contraindicaciones relativas</h3>
+   <ul><li>AIT en los últimos 6 meses; anticoagulación oral.</li><li>Embarazo o primera semana posparto.</li>
+   <li>HTA refractaria (PAS >180 / PAD >110).</li><li>Hepatopatía avanzada, endocarditis, úlcera péptica activa.</li>
+   <li>RCP prolongada o traumática.</li></ul>
+   <p style="color:var(--ink-soft);font-size:.82rem">Adaptado de las guías ESC de IAMCEST. La ICP primaria es preferible cuando es oportuna.</p>`}
+]},
+
+{group:'Hipertensión arterial', tools:[
+
+ {id:'htacron', name:'Clasificación de PA', sub:'Hipertensión crónica',
+  desc:'Categorías y metas según las guías vigentes. La medición fuera del consultorio (MAPA/AMPA) confirma el diagnóstico.',
+  kind:'ref', html:`
+   <h3>ACC/AHA 2025</h3>
+   <div class="cat-row"><span class="k">Normal</span><span class="v"><span class="pill">—</span>&lt; 120 / &lt; 80 mmHg.</span></div>
+   <div class="cat-row"><span class="k">Elevada</span><span class="v"><span class="pill amber">—</span>120–129 / &lt; 80 mmHg.</span></div>
+   <div class="cat-row"><span class="k">Estadio 1</span><span class="v"><span class="pill amber">HTA</span>130–139 / 80–89 mmHg.</span></div>
+   <div class="cat-row"><span class="k">Estadio 2</span><span class="v"><span class="pill red">HTA</span>≥ 140 / 90 mmHg.</span></div>
+   <p>Umbral diagnóstico y de tratamiento ≥ 130/80. <b>Meta universal &lt; 130/80.</b> En estadio 1 se inicia farmacoterapia si hay ECV, diabetes, ERC o riesgo PREVENT a 10 años ≥ 7.5% (el PREVENT reemplazó a las ecuaciones de cohorte combinadas).</p>
+   <h3>ESC 2024</h3>
+   <div class="cat-row"><span class="k">No elevada</span><span class="v"><span class="pill">—</span>&lt; 120 / &lt; 70 mmHg.</span></div>
+   <div class="cat-row"><span class="k">Elevada</span><span class="v"><span class="pill amber">—</span>120–139 / 70–89 mmHg (decisión según riesgo y daño de órgano).</span></div>
+   <div class="cat-row"><span class="k">HTA</span><span class="v"><span class="pill red">HTA</span>≥ 140 / 90 mmHg.</span></div>
+   <p><b>Meta de PAS 120–129 mmHg</b> en la mayoría si se tolera; individualice en ancianos frágiles.</p>
+   <p style="color:var(--ink-soft);font-size:.82rem">Confirme con tomas repetidas y medición ambulatoria. Individualice en ERC avanzada y embarazo.</p>`},
+
+ {id:'htacrisis', name:'PA marcadamente elevada', sub:'Emergencia vs sin daño de órgano',
+  desc:'PA &gt; 180/110–120 mmHg. La diferencia clave es la presencia de daño agudo de órgano blanco.',
+  note:'El documento AHA 2024 recomienda <b>retirar los términos «crisis hipertensiva» y «urgencia hipertensiva»</b> por su lenguaje subjetivo. «PA marcadamente elevada asintomática» reemplaza a «urgencia hipertensiva». Use el acrónimo <b>BARKH</b> (cerebro, arterias, retina, riñón, corazón) para rastrear daño de órgano blanco.',
+  kind:'ref', html:`
+   <div class="two">
+   <div class="col"><h4>PA marcadamente elevada asintomática</h4><ul>
+   <li>PA muy elevada <b>sin</b> daño agudo de órgano blanco.</li>
+   <li>Reducción <b>gradual</b> con antihipertensivos orales en horas a días.</li>
+   <li>Reinicie/optimice la terapia oral; seguimiento ambulatorio cercano.</li>
+   <li>Evite descensos bruscos y la intensificación parenteral innecesaria.</li></ul></div>
+   <div class="col"><h4>Emergencia hipertensiva</h4><ul>
+   <li>PA muy elevada <b>con</b> daño agudo de órgano blanco.</li>
+   <li>Encefalopatía, ACV, SCA, edema pulmonar, disección aórtica, eclampsia, LRA, retinopatía maligna.</li>
+   <li>UCI y antihipertensivos <b>IV</b> titulables.</li></ul></div>
+   </div>
+   <h3>Metas de reducción (emergencia)</h3>
+   <ul><li>General: reducir la PAM ~10–20% en la 1.ª hora y otro 5–15% en las siguientes 23 h.</li>
+   <li><b>Disección aórtica:</b> PAS &lt; 120 mmHg de forma rápida (betabloqueo primero, luego vasodilatador).</li>
+   <li><b>ACV isquémico:</b> tratar solo si va a trombólisis (objetivo &lt; 185/110) o si PA &gt; 220/120; en hemorrágico, objetivos específicos.</li>
+   <li><b>Eclampsia:</b> labetalol / hidralazina / nifedipino + sulfato de magnesio.</li></ul>
+   <p style="color:var(--ink-soft);font-size:.82rem">Evite el descenso excesivamente rápido por riesgo de hipoperfusión, salvo en disección aórtica.</p>`}
+]},
+
+{group:'Trombosis / TEV', tools:[
+
+ {id:'wellspe', name:'Wells (TEP)', sub:'Probabilidad pretest de TEP',
+  desc:'Base para decidir dímero D o imagen.',
+  kind:'sum', items:[
+   {l:'Signos/síntomas de TVP', h:'3 pts', p:3},{l:'TEP es el dx más probable', h:'3 pts', p:3},
+   {l:'FC > 100 lpm', h:'1.5', p:1.5},{l:'Inmovilización ≥3 d o cirugía <4 sem', h:'1.5', p:1.5},
+   {l:'TVP/TEP previo', h:'1.5', p:1.5},{l:'Hemoptisis', h:'1', p:1},{l:'Cáncer activo', h:'1', p:1}],
+  interp:t=>{ const two=t<=4?'TEP improbable':'TEP probable';
+   let tier,color; if(t<2){tier='Probabilidad baja';color='low';} else if(t<=6){tier='Probabilidad intermedia';color='mid';} else {tier='Probabilidad alta';color='high';}
+   return{tier,color,html:`Dicotomizado: <b>${two}</b> (≤4 vs >4). `+(t<=4?'Dímero D (ajustado por edad / YEARS); si negativo, descarta TEP.':'Solicite angioTC directamente; un dímero D negativo no descarta de forma segura.')};}},
+
+ {id:'wellsdvt', name:'Wells (TVP)', sub:'Probabilidad pretest de TVP',
+  desc:'Probabilidad clínica de trombosis venosa profunda de miembro inferior.',
+  kind:'sum', items:[
+   {l:'Cáncer activo', p:1},{l:'Parálisis/paresia o inmovilización reciente de MI', p:1},
+   {l:'Encamado ≥3 d o cirugía mayor <12 sem', p:1},{l:'Dolor localizado en trayecto venoso profundo', p:1},
+   {l:'Edema de toda la pierna', p:1},{l:'Aumento >3 cm de pantorrilla vs contralateral', p:1},
+   {l:'Edema con fóvea en pierna sintomática', p:1},{l:'Venas colaterales superficiales (no varicosas)', p:1},
+   {l:'TVP previa', p:1},{l:'Diagnóstico alternativo igual o más probable', h:'−2', p:-2}],
+  interp:t=>t>=2?{tier:'TVP probable',color:'high',html:'Realice ecografía Doppler venosa.'}
+   :{tier:'TVP improbable',color:'low',html:'Dímero D; si negativo, descarta TVP.'}},
+
+ {id:'spesi', name:'sPESI', sub:'Severidad de TEP confirmada',
+  desc:'Identifica TEP de bajo riesgo candidata a alta precoz.',
+  kind:'sum', items:[
+   {l:'Edad > 80 años', p:1},{l:'Cáncer', p:1},{l:'Enfermedad cardiopulmonar crónica', p:1},
+   {l:'FC ≥ 110 lpm', p:1},{l:'PAS < 100 mmHg', p:1},{l:'SaO₂ < 90%', p:1}],
+  interp:t=>t===0?{tier:'Bajo riesgo',color:'low',html:'Mortalidad a 30 d ≈ 1%. Candidato a alta precoz/ambulatorio si no hay disfunción de VD.'}
+   :{tier:'No es bajo riesgo',color:'high',html:'≥1 punto: requiere hospitalización y evaluación de VD/biomarcadores.'}},
+
+ {id:'padua', name:'Padua', sub:'Riesgo de TEV en hospitalizado médico',
+  desc:'Identifica al paciente médico hospitalizado que se beneficia de tromboprofilaxis.',
+  kind:'sum', items:[
+   {l:'Cáncer activo', h:'3', p:3},{l:'TEV previo', h:'3', p:3},{l:'Movilidad reducida', h:'3', p:3},
+   {l:'Trombofilia conocida', h:'3', p:3},{l:'Trauma/cirugía reciente ≤1 mes', h:'2', p:2},
+   {l:'Edad ≥ 70 años', p:1},{l:'Falla cardiaca o respiratoria', p:1},{l:'IAM o ACV isquémico agudo', p:1},
+   {l:'Infección aguda o enf. reumatológica', p:1},{l:'Obesidad (IMC ≥30)', p:1},{l:'Tratamiento hormonal', p:1}],
+  interp:t=>t>=4?{tier:'Alto riesgo (≥4)',color:'high',html:'<b>Tromboprofilaxis recomendada</b> (farmacológica si no hay contraindicación).'}
+   :{tier:'Bajo riesgo',color:'low',html:'Profilaxis farmacológica no rutinaria; medidas mecánicas según el caso.'}},
+
+ {id:'ddimer', name:'Dímero D ajustado / YEARS', sub:'Interpretación del dímero D',
+  desc:'Calcula el umbral ajustado por edad y aplica el algoritmo YEARS.',
+  kind:'custom', fields:[
+   {id:'age', l:'Edad', hint:'años', type:'num', def:60},
+   {id:'dd', l:'Dímero D', hint:'ng/mL (FEU)', type:'num', def:450},
+   {id:'years', l:'Ítems YEARS presentes', hint:'signos de TVP, hemoptisis, TEP más probable', type:'select', opts:[['0 ítems',0],['≥1 ítem',1]]}]},
+
+ {id:'ahape', name:'Clasificación AHA/ACC 2026 (TEP)', sub:'Categorías clínicas A–E',
+  desc:'Nueva clasificación que reemplaza “masivo/submasivo”, basada en severidad clínica, disfunción del ventrículo derecho (VD), biomarcadores y hemodinamia.',
+  note:'<b>Definiciones clave:</b> severidad clínica elevada = PESI &gt; 85 (clase III–V), sPESI ≥ 1 o Hestia ≥ 1. Biomarcadores = troponina I/T o BNP/NT-proBNP. Disfunción del VD = tamaño o función anormal por ecocardiograma o angioTC. La categoría se asigna por el indicador más severo y puede cambiar con el tiempo.',
+  kind:'ref', html:`
+   <div class="cat-row"><span class="k">A</span><span class="v"><span class="pill">Bajo</span>TEP <b>asintomática / incidental</b> (subclínica). Sin subgrupos. Manejo ambulatorio / alta desde urgencias.</span></div>
+   <div class="cat-row"><span class="k">B</span><span class="v"><span class="pill">Bajo</span>Sintomática con <b>baja severidad clínica</b> (PESI I–II / sPESI 0 / Hestia 0). Alta precoz razonable.<br><span style="color:var(--ink-soft);font-size:.85em">B1: subsegmentaria · B2: no subsegmentaria.</span></span></div>
+   <div class="cat-row"><span class="k">C</span><span class="v"><span class="pill amber">Intermedio</span>Sintomática con <b>severidad clínica elevada</b>. Hospitalizar y monitorizar.<br><span style="color:var(--ink-soft);font-size:.85em">C1: VD normal y biomarcadores normales · C2: VD anormal <b>o</b> ≥1 biomarcador anormal · C3: VD anormal <b>y</b> ≥1 biomarcador anormal (≈ “intermedio-alto”).</span></span></div>
+   <div class="cat-row"><span class="k">D</span><span class="v"><span class="pill red">Alto</span><b>Falla cardiopulmonar incipiente</b> (pre-falla).<br><span style="color:var(--ink-soft);font-size:.85em">D1: hipotensión transitoria · D2: shock normotenso (TA normal con hipoperfusión — lactato/creatinina en ascenso).</span></span></div>
+   <div class="cat-row"><span class="k">E</span><span class="v"><span class="pill red">Alto</span><b>Falla cardiopulmonar establecida</b>.<br><span style="color:var(--ink-soft);font-size:.85em">E1: hipotensión persistente con shock cardiogénico · E2: shock refractario o paro cardiaco.</span></span></div>
+   <p style="margin-top:12px"><b>Modificador respiratorio (R):</b> se añade a cualquier subcategoría ante hipoxemia, taquipnea o necesidad de oxígeno suplementario (p. ej. C1R).</p>
+   <p style="color:var(--ink-soft);font-size:.82rem">Se recomienda activar el equipo de respuesta (PERT). Guía 2026 AHA/ACC/Multisociety de TEP.</p>`},
+
+ {id:'escpe', name:'Clasificación ESC 2019 (TEP)', sub:'Cuatro niveles de riesgo',
+  desc:'Estratificación europea por hemodinamia, severidad clínica, disfunción de VD y troponina.',
+  kind:'ref', html:`
+   <div class="cat-row"><span class="k">Alto</span><span class="v"><span class="pill red">Alto</span>Inestabilidad hemodinámica (shock o hipotensión). → Reperfusión (trombólisis).</span></div>
+   <div class="cat-row"><span class="k">Int-alto</span><span class="v"><span class="pill amber">Intermedio</span>PESI III–V o sPESI ≥1, <b>con</b> disfunción de VD <b>y</b> troponina elevada. → Monitoreo, considerar rescate.</span></div>
+   <div class="cat-row"><span class="k">Int-bajo</span><span class="v"><span class="pill amber">Intermedio</span>PESI III–V o sPESI ≥1, con disfunción de VD <b>o</b> troponina (solo uno). → Hospitalizar y anticoagular.</span></div>
+   <div class="cat-row"><span class="k">Bajo</span><span class="v"><span class="pill">Bajo</span>sPESI 0, sin disfunción de VD ni troponina. → Alta precoz / ambulatorio.</span></div>`}
+]},
+
+{group:'Infección / Sepsis', tools:[
+
+ {id:'sofa', name:'SOFA', sub:'Disfunción orgánica',
+  desc:'Cuantifica la disfunción de seis sistemas. Un incremento ≥2 sobre el basal, ante infección, define sepsis (Sepsis-3).',
+  kind:'sum', items:[
+   {l:'Respiración (PaO₂/FiO₂)', opts:[['≥400',0],['<400',1],['<300',2],['<200 con soporte',3],['<100 con soporte',4]]},
+   {l:'Coagulación (plaquetas ×10³)', opts:[['≥150',0],['<150',1],['<100',2],['<50',3],['<20',4]]},
+   {l:'Hígado (bilirrubina mg/dL)', opts:[['<1.2',0],['1.2–1.9',1],['2.0–5.9',2],['6.0–11.9',3],['≥12',4]]},
+   {l:'Cardiovascular', opts:[['PAM ≥70',0],['PAM <70',1],['Dopa ≤5 o dobuta',2],['Dopa >5 / NA ≤0.1',3],['Dopa >15 / NA >0.1',4]]},
+   {l:'SNC (Glasgow)', opts:[['15',0],['13–14',1],['10–12',2],['6–9',3],['<6',4]]},
+   {l:'Renal (creatinina mg/dL)', opts:[['<1.2',0],['1.2–1.9',1],['2.0–3.4',2],['3.5–4.9',3],['≥5',4]]}],
+  interp:t=>{ let color,mort; if(t<=6){color='low';mort='< 10%';} else if(t<=9){color='mid';mort='15–20%';} else if(t<=12){color='mid';mort='40–50%';} else if(t<=14){color='high';mort='50–60%';} else {color='high';mort='> 80%';}
+   return{tier:'SOFA total',color,html:`Mortalidad hospitalaria aproximada <b>${mort}</b>. Útil seriado: la tendencia importa más que un valor aislado.`};}},
+
+ {id:'qsofa', name:'qSOFA', sub:'Tamizaje rápido fuera de UCI',
+  desc:'Identifica riesgo de mal desenlace por sepsis en el paciente con sospecha de infección.',
+  kind:'sum', items:[
+   {l:'Frecuencia respiratoria ≥ 22/min', p:1},{l:'Alteración del estado mental', h:'Glasgow <15', p:1},{l:'PAS ≤ 100 mmHg', p:1}],
+  interp:t=>t>=2?{tier:'qSOFA ≥ 2',color:'high',html:'Mayor riesgo de mortalidad/estancia en UCI. Evalúe disfunción orgánica (SOFA) e intensifique manejo.'}
+   :{tier:'qSOFA < 2',color:'low',html:'No descarta sepsis. Mantenga vigilancia clínica.'}},
+
+ {id:'news2', name:'NEWS2', sub:'Deterioro clínico (con escala de hipercapnia)',
+  desc:'Detección temprana de deterioro. Seleccione la escala 2 de SpO₂ en pacientes con insuficiencia respiratoria hipercápnica (p. ej. EPOC, objetivo 88–92%).',
+  note:'<b>Escala 2 (importante):</b> una SpO₂ ≥ 93% <b>respirando aire ambiente puntúa 0</b> — no se considera deterioro al estar por encima del objetivo 88–92%. La sobre-oxigenación solo se penaliza si el paciente recibe oxígeno suplementario (93–94 = 1, 95–96 = 2, ≥97 = 3). Esto es deliberado en la tabla oficial NEWS2 del Royal College of Physicians.',
+  kind:'custom', fields:[
+   {id:'rr', l:'Frecuencia respiratoria', type:'select', opts:[['12–20',0],['9–11',1],['21–24',2],['≤8 / ≥25',3]]},
+   {id:'scale', l:'Escala de SpO₂', type:'select', opts:[['Escala 1 (objetivo 94–98%)','1'],['Escala 2 (hipercapnia, objetivo 88–92%)','2']]},
+   {id:'spo2', l:'SpO₂ medida', hint:'%', type:'num', def:97},
+   {id:'o2', l:'Con oxígeno suplementario', type:'tog'},
+   {id:'sbp', l:'PAS (mmHg)', type:'select', opts:[['111–219',0],['101–110',1],['91–100',2],['≥220 / ≤90',3]]},
+   {id:'pulse', l:'Frecuencia cardiaca', type:'select', opts:[['51–90',0],['41–50 / 91–110',1],['111–130',2],['≤40 / ≥131',3]]},
+   {id:'consc', l:'Estado de conciencia', type:'select', opts:[['Alerta',0],['Nueva confusión / voz / dolor / no responde',3]]},
+   {id:'temp', l:'Temperatura (°C)', type:'select', opts:[['36.1–38.0',0],['35.1–36.0 / 38.1–39.0',1],['≥39.1',2],['≤35.0',3]]}]},
+
+ {id:'sepsisdef', name:'Definiciones de sepsis', sub:'Sepsis-3 y SSC 2026',
+  desc:'Marco conceptual actual y la categorización de probabilidad introducida en 2026.',
+  kind:'ref', html:`
+   <h3>Sepsis-3 (vigente)</h3>
+   <ul><li><b>Sepsis:</b> disfunción orgánica potencialmente mortal por una respuesta desregulada del huésped a la infección (Δ SOFA ≥ 2).</li>
+   <li><b>Shock séptico:</b> sepsis con necesidad de vasopresores para PAM ≥ 65 mmHg <b>y</b> lactato > 2 mmol/L pese a reanimación hídrica adecuada.</li></ul>
+   <h3>Surviving Sepsis Campaign 2026</h3>
+   <ul><li>Mantiene Sepsis-3 e incorpora la categorización en <b>sepsis posible, probable o definida</b> para guiar la toma de hemocultivos y el inicio/de-escalada de antimicrobianos.</li>
+   <li>Hemocultivos lo antes posible, idealmente antes del antibiótico.</li>
+   <li>Cristaloides ≥ 30 mL/kg en las primeras 3 h en hipoperfusión/shock, con reevaluación frecuente.</li>
+   <li>PAM objetivo 60–65 mmHg; en ≥65 años se sugiere el rango 60–65.</li></ul>
+   <p style="color:var(--ink-soft);font-size:.82rem">Resumen orientativo; consulte el documento completo para las recomendaciones y su nivel de evidencia.</p>`},
+
+ {id:'curb', name:'CURB-65', sub:'Severidad de neumonía',
+  desc:'Orienta el sitio de atención en neumonía adquirida en comunidad.',
+  kind:'sum', items:[
+   {l:'Confusión', p:1},{l:'Urea > 7 mmol/L', h:'BUN > 19 mg/dL', p:1},{l:'FR ≥ 30/min', p:1},
+   {l:'PAS < 90 o PAD ≤ 60', p:1},{l:'Edad ≥ 65 años', p:1}],
+  interp:t=>{ const m={0:'0.6%',1:'2.7%',2:'6.8%',3:'14%',4:'27%',5:'27–57%'}[t];
+   let color,act; if(t<=1){color='low';act='Manejo ambulatorio probablemente apropiado.';} else if(t===2){color='mid';act='Considere hospitalización u observación.';} else {color='high';act='Neumonía grave: hospitalice y valore UCI.';}
+   return{tier:'CURB-65',color,html:`Mortalidad a 30 d ≈ <b>${m}</b>. ${act}`};}},
+
+ {id:'psi', name:'PSI / PORT', sub:'Índice de severidad de neumonía',
+  desc:'Estratifica la mortalidad a 30 días en NAC y orienta el sitio de atención. La Clase I requiere edad < 50 sin comorbilidades ni alteraciones; las clases II–V se asignan por puntaje.',
+  kind:'custom', fields:[
+   {id:'age', l:'Edad', hint:'años', type:'num', def:65},
+   {id:'sex', l:'Sexo', type:'select', opts:[['Hombre','m'],['Mujer','f']]},
+   {id:'nh', l:'Residente en hogar geriátrico', type:'tog'},
+   {id:'neo', l:'Enfermedad neoplásica', type:'tog'},
+   {id:'liver', l:'Hepatopatía', type:'tog'},
+   {id:'chf', l:'Insuficiencia cardiaca', type:'tog'},
+   {id:'cv', l:'Enfermedad cerebrovascular', type:'tog'},
+   {id:'renal', l:'Enfermedad renal', type:'tog'},
+   {id:'ams', l:'Alteración del estado mental', type:'tog'},
+   {id:'rr', l:'FR ≥ 30/min', type:'tog'},
+   {id:'sbp', l:'PAS < 90 mmHg', type:'tog'},
+   {id:'temp', l:'Temp < 35 o ≥ 40 °C', type:'tog'},
+   {id:'pulse', l:'Pulso ≥ 125 lpm', type:'tog'},
+   {id:'ph', l:'pH arterial < 7.35', type:'tog'},
+   {id:'bun', l:'BUN ≥ 30 mg/dL', type:'tog'},
+   {id:'na', l:'Sodio < 130 mEq/L', type:'tog'},
+   {id:'glu', l:'Glucosa ≥ 250 mg/dL', type:'tog'},
+   {id:'hct', l:'Hematocrito < 30%', type:'tog'},
+   {id:'pao2', l:'PaO₂ < 60 mmHg o SaO₂ < 90%', type:'tog'},
+   {id:'eff', l:'Derrame pleural', type:'tog'}]},
+
+ {id:'idsaats', name:'IDSA/ATS — NAC grave', sub:'Criterios de neumonía grave',
+  desc:'Define neumonía grave (candidata a UCI): ≥1 criterio mayor o ≥3 criterios menores.',
+  kind:'custom', fields:[
+   {id:'maj1', l:'MAYOR · Shock séptico con vasopresores', type:'tog'},
+   {id:'maj2', l:'MAYOR · Falla respiratoria con ventilación mecánica', type:'tog'},
+   {id:'m1', l:'Menor · FR ≥ 30/min', type:'tog'},{id:'m2', l:'Menor · PaO₂/FiO₂ ≤ 250', type:'tog'},
+   {id:'m3', l:'Menor · Infiltrados multilobares', type:'tog'},{id:'m4', l:'Menor · Confusión/desorientación', type:'tog'},
+   {id:'m5', l:'Menor · Uremia (BUN ≥ 20 mg/dL)', type:'tog'},{id:'m6', l:'Menor · Leucopenia (<4000)', type:'tog'},
+   {id:'m7', l:'Menor · Trombocitopenia (<100k)', type:'tog'},{id:'m8', l:'Menor · Hipotermia (<36 °C)', type:'tog'},
+   {id:'m9', l:'Menor · Hipotensión que requiere fluidos', type:'tog'}]}
+]},
+
+{group:'Neumología', tools:[
+
+ {id:'gold', name:'GOLD — espirométrico', sub:'Severidad de la obstrucción (EPOC)',
+  desc:'Grado espirométrico según FEV₁ post-broncodilatador (con FEV₁/FVC < 0.70).',
+  kind:'classify', options:[
+   {l:'GOLD 1 — Leve (FEV₁ ≥ 80%)',color:'low',html:'Obstrucción leve.'},
+   {l:'GOLD 2 — Moderada (50–79%)',color:'mid',html:'Obstrucción moderada.'},
+   {l:'GOLD 3 — Grave (30–49%)',color:'high',html:'Obstrucción grave.'},
+   {l:'GOLD 4 — Muy grave (< 30%)',color:'high',html:'Obstrucción muy grave.'}]},
+
+ {id:'goldabe', name:'GOLD — grupos ABE', sub:'Evaluación clínica (síntomas y exacerbaciones)',
+  desc:'Clasificación clínica vigente (la antigua D se fusionó en el grupo E).',
+  kind:'ref', html:`
+   <div class="cat-row"><span class="k">A</span><span class="v"><span class="pill">Bajo</span>0–1 exacerbación (sin hospitalización) <b>y</b> pocos síntomas (mMRC 0–1 / CAT < 10). → Broncodilatador.</span></div>
+   <div class="cat-row"><span class="k">B</span><span class="v"><span class="pill amber">Bajo-síntomas</span>0–1 exacerbación (sin hospitalización) <b>y</b> más síntomas (mMRC ≥2 / CAT ≥10). → LABA + LAMA.</span></div>
+   <div class="cat-row"><span class="k">E</span><span class="v"><span class="pill red">Exacerbador</span>≥2 exacerbaciones moderadas o ≥1 con hospitalización. → LABA + LAMA; considerar ICS si eosinófilos ≥300.</span></div>`},
+
+ {id:'mmrc', name:'mMRC (disnea)', sub:'Escala modificada del Medical Research Council',
+  desc:'Gradúa la disnea en enfermedad respiratoria crónica.',
+  kind:'classify', options:[
+   {l:'Grado 0 — Disnea con ejercicio intenso',color:'low',html:''},
+   {l:'Grado 1 — Al caminar rápido o subir una pendiente leve',color:'low',html:''},
+   {l:'Grado 2 — Camina más lento que sus pares o se detiene',color:'mid',html:'mMRC ≥2 indica más síntomas en la clasificación GOLD.'},
+   {l:'Grado 3 — Se detiene tras ~100 m o pocos minutos',color:'high',html:''},
+   {l:'Grado 4 — Disnea al vestirse / no sale de casa',color:'high',html:''}]},
+
+ {id:'cat', name:'CAT (COPD Assessment Test)', sub:'Impacto sintomático del EPOC',
+  desc:'Ocho ítems de 0–5; total 0–40.',
+  kind:'sum', items:[
+   {l:'Tos', opts:[['0',0],['1',1],['2',2],['3',3],['4',4],['5',5]]},
+   {l:'Flema', opts:[['0',0],['1',1],['2',2],['3',3],['4',4],['5',5]]},
+   {l:'Opresión torácica', opts:[['0',0],['1',1],['2',2],['3',3],['4',4],['5',5]]},
+   {l:'Disnea al subir', opts:[['0',0],['1',1],['2',2],['3',3],['4',4],['5',5]]},
+   {l:'Limitación en casa', opts:[['0',0],['1',1],['2',2],['3',3],['4',4],['5',5]]},
+   {l:'Confianza para salir', opts:[['0',0],['1',1],['2',2],['3',3],['4',4],['5',5]]},
+   {l:'Sueño', opts:[['0',0],['1',1],['2',2],['3',3],['4',4],['5',5]]},
+   {l:'Energía', opts:[['0',0],['1',1],['2',2],['3',3],['4',4],['5',5]]}],
+  interp:t=>{ let color,x; if(t<10){color='low';x='Impacto bajo';} else if(t<=20){color='mid';x='Impacto medio';} else if(t<=30){color='high';x='Impacto alto';} else {color='high';x='Impacto muy alto';}
+   return{tier:x,color,html:`CAT ≥ 10 indica carga sintomática significativa (grupo B o E en GOLD).`};}},
+
+ {id:'bap65', name:'BAP-65', sub:'Exacerbación de EPOC en urgencias',
+  desc:'Estratifica el riesgo de mortalidad y ventilación mecánica en la exacerbación.',
+  kind:'custom', fields:[
+   {id:'bun', l:'BUN ≥ 25 mg/dL', type:'tog'},
+   {id:'ams', l:'Alteración del estado mental', type:'tog'},
+   {id:'pulse', l:'Pulso ≥ 109 lpm', type:'tog'},
+   {id:'age', l:'Edad ≥ 65 años', type:'tog'}]},
+
+ {id:'gina', name:'GINA — control y pasos', sub:'Asma',
+  desc:'Evaluación del control (4 semanas) y escalonamiento (vía preferida con ICS-formoterol).',
+  kind:'ref', html:`
+   <h3>Control del asma (últimas 4 semanas)</h3>
+   <p>Evalúe: síntomas diurnos > 2/semana · despertar nocturno · uso de rescate > 2/semana · limitación de actividad.</p>
+   <ul><li><b>Bien controlada:</b> ninguno.</li><li><b>Parcialmente:</b> 1–2.</li><li><b>No controlada:</b> 3–4.</li></ul>
+   <h3>Tratamiento — Vía 1 (preferida, ICS-formoterol)</h3>
+   <ul><li>Pasos 1–2: ICS-formoterol a dosis baja <b>según necesidad</b> (MART/AIR).</li>
+   <li>Paso 3: ICS-formoterol dosis baja de mantenimiento + rescate.</li>
+   <li>Paso 4: ICS-formoterol dosis media de mantenimiento + rescate.</li>
+   <li>Paso 5: añadir LAMA; fenotipificar y considerar biológicos; valorar dosis alta.</li></ul>
+   <p style="color:var(--ink-soft);font-size:.82rem">GINA ya no recomienda SABA en monoterapia. Verifique el reporte GINA del año en curso.</p>`},
+
+ {id:'light', name:'Criterios de Light', sub:'Exudado vs trasudado (derrame pleural)',
+  desc:'Es exudado si cumple ≥1 criterio. Requiere proteínas y LDH en suero y líquido pleural.',
+  kind:'custom', fields:[
+   {id:'pp', l:'Proteína pleural', hint:'g/dL', type:'num', def:3.5},
+   {id:'sp', l:'Proteína sérica', hint:'g/dL', type:'num', def:7.0},
+   {id:'pl', l:'LDH pleural', hint:'U/L', type:'num', def:250},
+   {id:'sl', l:'LDH sérica', hint:'U/L', type:'num', def:200},
+   {id:'uln', l:'Límite superior LDH sérica', hint:'U/L', type:'num', def:240}]},
+
+ {id:'complicated', name:'Derrame paraneumónico complicado', sub:'Indicación de drenaje',
+  desc:'Características del líquido que indican drenaje torácico.',
+  kind:'ref', html:`
+   <ul><li><b>Pus franco (empiema):</b> drenaje obligatorio.</li>
+   <li><b>pH pleural < 7.20:</b> derrame complicado → drenaje.</li>
+   <li><b>Glucosa pleural < 60 mg/dL</b> (más marcado si < 40).</li>
+   <li><b>LDH pleural > 1000 U/L.</b></li>
+   <li><b>Gram o cultivo positivos.</b></li>
+   <li>Loculación o engrosamiento pleural en imagen.</li></ul>
+   <p style="color:var(--ink-soft);font-size:.82rem">El derrame paraneumónico no complicado (libre, pH ≥ 7.20, glucosa normal, sin gérmenes) suele responder solo a antibiótico.</p>`}
+]},
+
+{group:'Nefrología / Medio interno', tools:[
+
+ {id:'ckdepi', name:'eGFR — CKD-EPI 2021', sub:'Filtración glomerular estimada',
+  desc:'Ecuación de creatinina 2021, sin coeficiente de raza.',
+  kind:'custom', fields:[
+   {id:'scr', l:'Creatinina sérica', hint:'mg/dL', type:'num', def:1.0},
+   {id:'age', l:'Edad', hint:'años', type:'num', def:60},
+   {id:'sex', l:'Sexo', type:'select', opts:[['Hombre','m'],['Mujer','f']]}]},
+
+ {id:'cockcroft', name:'Cockcroft-Gault', sub:'Aclaramiento de creatinina (dosificación)',
+  desc:'Estimación clásica del ClCr, aún usada para ajuste de muchos fármacos (incluidos varios DOAC).',
+  kind:'custom', fields:[
+   {id:'age', l:'Edad', hint:'años', type:'num', def:60},
+   {id:'wt', l:'Peso', hint:'kg', type:'num', def:70},
+   {id:'scr', l:'Creatinina sérica', hint:'mg/dL', type:'num', def:1.0},
+   {id:'sex', l:'Sexo', type:'select', opts:[['Hombre','m'],['Mujer','f']]}]},
+
+ {id:'kdigo', name:'KDIGO — LRA', sub:'Estadificación de lesión renal aguda',
+  desc:'Seleccione el peor criterio (creatinina o diuresis).',
+  kind:'classify', options:[
+   {l:'Sin LRA',color:'low',html:'No cumple criterios.'},
+   {l:'Estadio 1 — Cr 1.5–1.9× basal o ↑≥0.3 mg/dL; o diuresis <0.5 mL/kg/h × 6–12 h',color:'mid',html:'Identifique y trate la causa; revise nefrotóxicos.'},
+   {l:'Estadio 2 — Cr 2.0–2.9× basal; o diuresis <0.5 mL/kg/h ≥12 h',color:'high',html:'Ajuste fármacos; vigile complicaciones.'},
+   {l:'Estadio 3 — Cr ≥3× o ≥4.0 mg/dL o TRR; o diuresis <0.3 mL/kg/h ≥24 h o anuria ≥12 h',color:'high',html:'Considere nefrología y terapia de reemplazo renal.'}]},
+
+ {id:'hypona', name:'Hiponatremia — enfoque', sub:'Algoritmo diagnóstico interactivo',
+  desc:'Guía paso a paso según osmolaridad, volemia y osmolaridad/sodio urinarios.',
+  kind:'custom', fields:[
+   {id:'na', l:'Sodio sérico', hint:'mEq/L', type:'num', def:128},
+   {id:'sosm', l:'Osmolaridad sérica', hint:'mOsm/kg', type:'select', opts:[['Baja (<275) — hipotónica',1],['Normal (275–295)',2],['Alta (>295)',3]]},
+   {id:'vol', l:'Estado de volemia', type:'select', opts:[['Hipovolemia',1],['Euvolemia',2],['Hipervolemia',3]]},
+   {id:'uosm', l:'Osmolaridad urinaria', type:'select', opts:[['≤100 (diluida)',1],['>100 (concentrada)',2]]},
+   {id:'una', l:'Sodio urinario', type:'select', opts:[['<30 mEq/L',1],['≥30 mEq/L',2]]}]}
+]},
+
+{group:'Gastroenterología / Hepatología', tools:[
+
+ {id:'childpugh', name:'Child-Pugh', sub:'Severidad de cirrosis',
+  desc:'Clasifica la reserva funcional hepática.',
+  kind:'sum', items:[
+   {l:'Bilirrubina (mg/dL)', opts:[['<2',1],['2–3',2],['>3',3]]},
+   {l:'Albúmina (g/dL)', opts:[['>3.5',1],['2.8–3.5',2],['<2.8',3]]},
+   {l:'INR', opts:[['<1.7',1],['1.7–2.3',2],['>2.3',3]]},
+   {l:'Ascitis', opts:[['Ausente',1],['Leve-moderada',2],['Severa/refractaria',3]]},
+   {l:'Encefalopatía', opts:[['Ausente',1],['Grado 1–2',2],['Grado 3–4',3]]}],
+  interp:t=>{ let cls,color,surv; if(t<=6){cls='Clase A';color='low';surv='supervivencia a 1 año ~100%';}
+   else if(t<=9){cls='Clase B';color='mid';surv='~80% a 1 año';} else {cls='Clase C';color='high';surv='~45% a 1 año';}
+   return{tier:cls+` (${t} pts)`,color,html:`Reserva hepática reducida; ${surv}.`};}},
+
+ {id:'meldna', name:'MELD-Na', sub:'Pronóstico en hepatopatía',
+  desc:'Predice mortalidad a 90 días y orienta priorización. (El MELD 3.0 es el estándar de asignación actual; aquí se calcula MELD-Na.)',
+  kind:'custom', fields:[
+   {id:'bili', l:'Bilirrubina', hint:'mg/dL', type:'num', def:2.0},
+   {id:'inr', l:'INR', type:'num', def:1.5},
+   {id:'cr', l:'Creatinina', hint:'mg/dL (4.0 si diálisis)', type:'num', def:1.2},
+   {id:'na', l:'Sodio', hint:'mEq/L', type:'num', def:135}]},
+
+ {id:'saag', name:'GASA / SAAG', sub:'Gradiente albúmina suero-ascitis',
+  desc:'Diferencia la ascitis por hipertensión portal de otras causas.',
+  kind:'custom', fields:[
+   {id:'salb', l:'Albúmina sérica', hint:'g/dL', type:'num', def:3.2},
+   {id:'aalb', l:'Albúmina en ascitis', hint:'g/dL', type:'num', def:1.0}]},
+
+ {id:'blatchford', name:'Glasgow-Blatchford', sub:'Hemorragia digestiva alta',
+  desc:'Predice necesidad de intervención (transfusión/endoscopia). Un puntaje 0 permite considerar manejo ambulatorio.',
+  kind:'custom', fields:[
+   {id:'bun', l:'BUN (mg/dL)', type:'select', opts:[['<18.2',0],['18.2–22.3',2],['22.4–27.9',3],['28–69.9',4],['≥70',6]]},
+   {id:'sex', l:'Sexo', type:'select', opts:[['Hombre','m'],['Mujer','f']]},
+   {id:'hb', l:'Hemoglobina (g/dL)', type:'num', def:13},
+   {id:'sbp', l:'PAS (mmHg)', type:'select', opts:[['≥110',0],['100–109',1],['90–99',2],['<90',3]]},
+   {id:'pulse', l:'Pulso ≥ 100', type:'tog'},{id:'melena', l:'Melena', type:'tog'},
+   {id:'syncope', l:'Síncope', type:'tog'},{id:'liver', l:'Hepatopatía', type:'tog'},{id:'cardiac', l:'Falla cardiaca', type:'tog'}]},
+
+ {id:'oakland', name:'Oakland', sub:'Hemorragia digestiva baja',
+  desc:'Predice alta segura en HDB. ≤ 8 puntos: ~95% de probabilidad de alta segura.',
+  kind:'sum', items:[
+   {l:'Edad', opts:[['<40',0],['40–69',1],['≥70',2]]},
+   {l:'Sexo', opts:[['Mujer',0],['Hombre',1]]},
+   {l:'Ingreso previo por HDB', opts:[['No',0],['Sí',1]]},
+   {l:'Sangre al tacto rectal', opts:[['No',0],['Sí',1]]},
+   {l:'Frecuencia cardiaca', opts:[['<70',0],['70–89',1],['90–109',2],['≥110',3]]},
+   {l:'PAS (mmHg)', opts:[['≥160',0],['130–159',1],['120–129',2],['90–119',4],['<90',5]]},
+   {l:'Hemoglobina (g/dL)', opts:[['≥16',0],['13–15.9',4],['11–12.9',8],['9–10.9',13],['7–8.9',17],['<7',22]]}],
+  interp:t=>t<=8?{tier:'Riesgo bajo',color:'low',html:'Alta probabilidad de alta segura con seguimiento ambulatorio.'}
+   :{tier:'Riesgo elevado',color:'high',html:'Maneje intrahospitalario; valore reanimación y colonoscopia.'}},
+
+ {id:'truelove', name:'Truelove-Witts', sub:'Severidad de colitis ulcerativa',
+  desc:'Clasifica el brote de CU.',
+  kind:'ref', html:`
+   <div class="two">
+   <div class="col"><h4>Leve</h4><ul><li><4 deposiciones/día</li><li>Sangre escasa</li><li>Sin fiebre ni taquicardia</li><li>Anemia leve, VSG <30</li></ul></div>
+   <div class="col"><h4>Severa (≥6 + sistémico)</h4><ul><li>≥6 deposiciones con sangre/día</li><li>Temperatura > 37.8 °C</li><li>FC > 90 lpm</li><li>Hb < 10.5 g/dL</li><li>VSG > 30 mm/h</li></ul></div>
+   </div>
+   <p style="color:var(--ink-soft);font-size:.82rem">Moderada: intermedia entre leve y severa. El brote severo requiere hospitalización y corticoide IV.</p>`},
+
+ {id:'harvey', name:'Harvey-Bradshaw', sub:'Actividad de enfermedad de Crohn',
+  desc:'Índice clínico simplificado de actividad.',
+  kind:'sum', items:[
+   {l:'Estado general', opts:[['Muy bien',0],['Regular',1],['Malo',2],['Muy malo',3],['Pésimo',4]]},
+   {l:'Dolor abdominal', opts:[['Ninguno',0],['Leve',1],['Moderado',2],['Severo',3]]},
+   {l:'Deposiciones líquidas/día', type:'num', def:0},
+   {l:'Masa abdominal', opts:[['Ninguna',0],['Dudosa',1],['Definida',2],['Definida + dolor',3]]},
+   {l:'Artralgia', p:1},{l:'Uveítis', p:1},{l:'Eritema nodoso / pioderma / aftas', p:1},
+   {l:'Fisura anal', p:1},{l:'Fístula nueva', p:1},{l:'Absceso', p:1}],
+  interp:t=>{ let color,x; if(t<5){color='low';x='Remisión';} else if(t<=7){color='mid';x='Leve';} else if(t<=16){color='high';x='Moderada';} else {color='high';x='Severa';}
+   return{tier:x+` (${t} pts)`,color,html:'Útil para seguimiento clínico; <5 indica remisión.'};}}
+]},
+
+{group:'Pancreatitis', tools:[
+
+ {id:'bisap', name:'BISAP', sub:'Pancreatitis aguda — pronóstico precoz',
+  desc:'Estratifica la mortalidad en las primeras 24 h.',
+  kind:'sum', items:[
+   {l:'BUN > 25 mg/dL', p:1},{l:'Alteración del estado mental', p:1},{l:'SIRS', p:1},
+   {l:'Edad > 60 años', p:1},{l:'Derrame pleural', p:1}],
+  interp:t=>t>=3?{tier:'Riesgo alto (≥3)',color:'high',html:'Mortalidad sustancialmente mayor; considere monitoreo intensivo.'}
+   :{tier:'Riesgo bajo',color:'low',html:'Mortalidad baja; reevalúe de forma seriada.'}},
+
+ {id:'ranson', name:'Ranson (no biliar)', sub:'Severidad de pancreatitis',
+  desc:'Criterios al ingreso y a las 48 h. ≥3 sugiere pancreatitis grave.',
+  kind:'sum', items:[
+   {l:'Ingreso · Edad > 55 años', p:1},{l:'Ingreso · Leucocitos > 16.000', p:1},{l:'Ingreso · Glucosa > 200 mg/dL', p:1},
+   {l:'Ingreso · AST > 250 U/L', p:1},{l:'Ingreso · LDH > 350 U/L', p:1},
+   {l:'48 h · Caída del hematocrito > 10%', p:1},{l:'48 h · ↑ BUN > 5 mg/dL', p:1},{l:'48 h · Calcio < 8 mg/dL', p:1},
+   {l:'48 h · PaO₂ < 60 mmHg', p:1},{l:'48 h · Déficit de base > 4', p:1},{l:'48 h · Secuestro de líquidos > 6 L', p:1}],
+  interp:t=>{ let color,m; if(t<3){color='low';m='< 3%';} else if(t<=4){color='mid';m='≈ 15%';} else if(t<=6){color='high';m='≈ 40%';} else {color='high';m='≈ 100%';}
+   return{tier:`${t} criterios`,color,html:`Mortalidad estimada <b>${m}</b>. ≥3 indica curso grave. (APACHE II se prefiere para gravedad dinámica.)`};}},
+
+ {id:'apache2', name:'APACHE II', sub:'Gravedad en el paciente crítico',
+  desc:'Puntaje fisiológico agudo + edad + salud crónica (0–71), con los peores valores de las primeras 24 h. Útil para gravedad en pancreatitis y en UCI.',
+  kind:'custom', fields:[
+   {id:'temp', l:'Temperatura (°C)', type:'select', opts:[['36–38.4',0],['38.5–38.9 / 34–35.9',1],['32–33.9',2],['39–40.9 / 30–31.9',3],['≥41 / ≤29.9',4]]},
+   {id:'map', l:'PAM (mmHg)', type:'select', opts:[['70–109',0],['50–69 / 110–129',2],['130–159',3],['≥160 / ≤49',4]]},
+   {id:'hr', l:'Frecuencia cardiaca', type:'select', opts:[['70–109',0],['55–69 / 110–139',2],['40–54 / 140–179',3],['≥180 / ≤39',4]]},
+   {id:'rr', l:'Frecuencia respiratoria', type:'select', opts:[['12–24',0],['10–11 / 25–34',1],['6–9',2],['35–49',3],['≥50 / ≤5',4]]},
+   {id:'oxy', l:'Oxigenación', hint:'A-aDO₂ si FiO₂≥0.5; si no, PaO₂', type:'select', opts:[['PaO₂ >70 o A-aDO₂ <200',0],['PaO₂ 61–70',1],['A-aDO₂ 200–349',2],['PaO₂ 55–60 o A-aDO₂ 350–499',3],['PaO₂ <55 o A-aDO₂ ≥500',4]]},
+   {id:'ph', l:'pH arterial', type:'select', opts:[['7.33–7.49',0],['7.5–7.59',1],['7.25–7.32',2],['7.6–7.69 / 7.15–7.24',3],['≥7.7 / <7.15',4]]},
+   {id:'na', l:'Sodio (mEq/L)', type:'select', opts:[['130–149',0],['150–154',1],['155–159 / 120–129',2],['160–179 / 111–119',3],['≥180 / ≤110',4]]},
+   {id:'k', l:'Potasio (mEq/L)', type:'select', opts:[['3.5–5.4',0],['3–3.4 / 5.5–5.9',1],['2.5–2.9',2],['6–6.9',3],['≥7 / <2.5',4]]},
+   {id:'cr', l:'Creatinina (mg/dL)', type:'select', opts:[['0.6–1.4',0],['<0.6 / 1.5–1.9',2],['2–3.4',3],['≥3.5',4]]},
+   {id:'arf', l:'Falla renal aguda', hint:'duplica los puntos de creatinina', type:'tog'},
+   {id:'hct', l:'Hematocrito (%)', type:'select', opts:[['30–45.9',0],['46–49.9',1],['50–59.9 / 20–29.9',2],['≥60 / <20',4]]},
+   {id:'wbc', l:'Leucocitos (×10³)', type:'select', opts:[['3–14.9',0],['15–19.9',1],['20–39.9 / 1–2.9',2],['≥40 / <1',4]]},
+   {id:'gcs', l:'Glasgow', hint:'puntos = 15 − GCS', type:'num', def:15},
+   {id:'age', l:'Edad', hint:'años', type:'num', def:60},
+   {id:'chronic', l:'Salud crónica', type:'select', opts:[['Ninguna',0],['Postop. electivo + enf. crónica grave/inmunosupresión',2],['No quirúrgico o postop. urgente + enf. crónica grave/inmunosupresión',5]]}]}
+]},
+
+{group:'Endocrino / Metabólico', tools:[
+
+ {id:'findrisc', name:'FINDRISC', sub:'Riesgo de diabetes tipo 2',
+  desc:'Tamizaje del riesgo a 10 años. No es diagnóstico.',
+  kind:'custom', fields:[
+   {id:'age', l:'Edad', hint:'años', type:'num', def:50},
+   {id:'wt', l:'Peso', hint:'kg', type:'num', def:78},
+   {id:'ht', l:'Talla', hint:'cm', type:'num', def:170},
+   {id:'sex', l:'Sexo', type:'select', opts:[['Hombre','m'],['Mujer','f']]},
+   {id:'waist', l:'Perímetro abdominal', hint:'cm', type:'num', def:96},
+   {id:'act', l:'Actividad física ≥30 min/día', type:'tog', def:true},
+   {id:'veg', l:'Frutas/verduras a diario', type:'tog', def:true},
+   {id:'bp', l:'Toma antihipertensivos', type:'tog'},
+   {id:'glu', l:'Glucemia elevada previa', type:'tog'},
+   {id:'fam', l:'Antecedente familiar de diabetes', type:'select', opts:[['No',0],['Abuelos/tíos/primos',3],['Padres/hermanos/hijos',5]]}]},
+
+ {id:'ada', name:'ADA — algoritmo de tratamiento', sub:'Diabetes tipo 2 (centrado en el paciente)',
+  desc:'Marco de elección de terapia según comorbilidad y objetivos, alineado con los Estándares de Atención de la ADA.',
+  kind:'ref', html:`
+   <h3>Base del manejo</h3>
+   <ul><li>Estilo de vida, educación y manejo de peso en todos los pacientes.</li>
+   <li>La elección del fármaco se guía por la comorbilidad cardiorrenal, no solo por la HbA1c.</li></ul>
+   <h3>Según comorbilidad (independiente de metformina/HbA1c)</h3>
+   <ul><li><b>Enfermedad cardiovascular aterosclerótica / alto riesgo:</b> agonista GLP-1 o iSGLT2 con beneficio CV probado.</li>
+   <li><b>Insuficiencia cardiaca:</b> iSGLT2.</li>
+   <li><b>Enfermedad renal crónica:</b> iSGLT2 (o GLP-1 si no se tolera); finerenona si albuminuria persistente.</li>
+   <li><b>Prioridad de peso:</b> GLP-1 / agonista dual GIP-GLP-1 de alta eficacia.</li></ul>
+   <h3>Si el foco es la glucemia</h3>
+   <ul><li>Metformina y/o terapia combinada temprana según la HbA1c basal y la meta individualizada.</li>
+   <li>Intensifique con combinaciones; insulina cuando hay catabolismo, síntomas o HbA1c muy alta.</li></ul>
+   <p style="color:var(--ink-soft);font-size:.82rem">Esquema orientativo; consulte los Standards of Care de la ADA del año vigente para dosis y matices.</p>`},
+
+ {id:'dkahhs', name:'CAD / EHH — criterios', sub:'Crisis hiperglucémicas',
+  desc:'Criterios diagnósticos de cetoacidosis diabética y estado hiperglucémico hiperosmolar.',
+  kind:'ref', html:`
+   <div class="two">
+   <div class="col"><h4>Cetoacidosis diabética (CAD)</h4><ul>
+   <li>Glucemia > 250 mg/dL (puede ser euglucémica con iSGLT2).</li>
+   <li>pH arterial < 7.30 y/o bicarbonato < 18 mEq/L.</li>
+   <li>Cetonemia/cetonuria positivas.</li>
+   <li>Anión gap elevado.</li></ul>
+   <p style="font-size:.82rem;color:var(--ink-soft)">Gravedad por pH/HCO₃: leve, moderada, severa.</p></div>
+   <div class="col"><h4>Estado hiperglucémico hiperosmolar (EHH)</h4><ul>
+   <li>Glucemia > 600 mg/dL.</li>
+   <li>Osmolaridad efectiva > 320 mOsm/kg.</li>
+   <li>pH > 7.30 y bicarbonato > 18.</li>
+   <li>Cetonas mínimas o ausentes; alteración del sensorio.</li></ul></div>
+   </div>
+   <p style="color:var(--ink-soft);font-size:.82rem">Osm. efectiva = 2×Na + glucosa/18. Pilares: líquidos, insulina y reposición de potasio.</p>`}
+]},
+
+{group:'Neurología / ACV', tools:[
+
+ {id:'nihss', name:'NIHSS', sub:'Severidad del ACV agudo',
+  desc:'Escala de 15 ítems (0–42). A mayor puntaje, mayor severidad.',
+  kind:'sum', items:[
+   {l:'1a. Nivel de conciencia', opts:[['Alerta',0],['Somnoliento',1],['Estuporoso',2],['Coma',3]]},
+   {l:'1b. Preguntas (mes/edad)', opts:[['Ambas',0],['Una',1],['Ninguna',2]]},
+   {l:'1c. Órdenes', opts:[['Ambas',0],['Una',1],['Ninguna',2]]},
+   {l:'2. Mirada', opts:[['Normal',0],['Paresia parcial',1],['Desviación forzada',2]]},
+   {l:'3. Campos visuales', opts:[['Normal',0],['Hemianopsia parcial',1],['Completa',2],['Bilateral',3]]},
+   {l:'4. Parálisis facial', opts:[['Normal',0],['Leve',1],['Parcial',2],['Completa',3]]},
+   {l:'5a. Brazo izquierdo', opts:[['Sin caída',0],['Caída',1],['Esfuerzo vs gravedad',2],['Sin esfuerzo',3],['Sin movimiento',4]]},
+   {l:'5b. Brazo derecho', opts:[['Sin caída',0],['Caída',1],['Esfuerzo vs gravedad',2],['Sin esfuerzo',3],['Sin movimiento',4]]},
+   {l:'6a. Pierna izquierda', opts:[['Sin caída',0],['Caída',1],['Esfuerzo vs gravedad',2],['Sin esfuerzo',3],['Sin movimiento',4]]},
+   {l:'6b. Pierna derecha', opts:[['Sin caída',0],['Caída',1],['Esfuerzo vs gravedad',2],['Sin esfuerzo',3],['Sin movimiento',4]]},
+   {l:'7. Ataxia de miembros', opts:[['Ausente',0],['Un miembro',1],['Dos miembros',2]]},
+   {l:'8. Sensibilidad', opts:[['Normal',0],['Leve-moderada',1],['Severa/anestesia',2]]},
+   {l:'9. Lenguaje', opts:[['Normal',0],['Afasia leve-moderada',1],['Severa',2],['Mutismo/afasia global',3]]},
+   {l:'10. Disartria', opts:[['Normal',0],['Leve-moderada',1],['Severa',2]]},
+   {l:'11. Extinción/inatención', opts:[['Normal',0],['Una modalidad',1],['Más de una',2]]}],
+  interp:t=>{ let color,x; if(t===0){color='low';x='Sin déficit';} else if(t<=4){color='low';x='Leve';} else if(t<=15){color='mid';x='Moderado';} else if(t<=20){color='high';x='Moderado-severo';} else {color='high';x='Severo';}
+   return{tier:x+` (${t})`,color,html:'Guía decisiones de reperfusión y seguimiento. Documente la hora de inicio.'};}},
+
+ {id:'aspects', name:'ASPECTS', sub:'Isquemia precoz en TC (territorio ACM)',
+  desc:'Inicia en 10; reste 1 por cada región con cambios isquémicos precoces.',
+  kind:'sum', items:[
+   {l:'Núcleo caudado', p:-1},{l:'Lentiforme', p:-1},{l:'Cápsula interna', p:-1},{l:'Ribete insular', p:-1},
+   {l:'M1', p:-1},{l:'M2', p:-1},{l:'M3', p:-1},{l:'M4', p:-1},{l:'M5', p:-1},{l:'M6', p:-1}],
+  interp:t=>{ const score=10+t; let color,x; if(score>=8){color='low';x='Favorable';} else {color='high';x='Infarto extenso';}
+   return{tier:`ASPECTS ${score}`,color,html:(score>=8?'Menor volumen de infarto; mejor pronóstico para reperfusión.':'≤7 se asocia a infarto extenso y peor pronóstico.')};}},
+
+ {id:'strokelysis', name:'Trombólisis en ACV isquémico', sub:'Indicaciones y contraindicaciones',
+  desc:'Referencia para alteplasa/tenecteplasa en ACV isquémico agudo.',
+  kind:'ref', html:`
+   <h3>Indicación</h3>
+   <ul><li>ACV isquémico con déficit medible, dentro de ≤4.5 h del inicio (o última vez visto sano), tras descartar hemorragia por imagen.</li>
+   <li>Trombectomía mecánica para oclusión de gran vaso, ventana extendida según imagen de perfusión.</li></ul>
+   <h3>Contraindicaciones (selección)</h3>
+   <ul><li>Hemorragia intracraneal en TC; antecedente de hemorragia intracraneal.</li>
+   <li>PA > 185/110 no controlable.</li><li>Glucemia < 50 mg/dL no corregida.</li>
+   <li>Cirugía mayor o trauma grave reciente; sangrado activo.</li>
+   <li>ACV isquémico o TEC severo en los últimos 3 meses.</li>
+   <li>Plaquetas < 100.000; anticoagulación con INR > 1.7 o DOAC reciente.</li>
+   <li>Endocarditis, disección aórtica, neoplasia intracraneal de alto riesgo.</li></ul>
+   <p style="color:var(--ink-soft);font-size:.82rem">Lista orientativa; aplique los criterios completos AHA/ASA y el juicio del equipo de stroke. El tiempo es cerebro.</p>`}
+]},
+
+{group:'Oncología — urgencias', tools:[
+
+ {id:'tls', name:'Cairo-Bishop', sub:'Síndrome de lisis tumoral',
+  desc:'Lisis tumoral de laboratorio: ≥2 alteraciones (3 días antes a 7 días después de la quimioterapia). Si además hay compromiso de órgano, es lisis clínica.',
+  kind:'custom', fields:[
+   {id:'k', l:'Laboratorio · Potasio ≥ 6 mEq/L (o ↑25%)', type:'tog'},
+   {id:'ua', l:'Laboratorio · Ácido úrico ≥ 8 mg/dL (o ↑25%)', type:'tog'},
+   {id:'ph', l:'Laboratorio · Fósforo ≥ 4.5 mg/dL (o ↑25%)', type:'tog'},
+   {id:'ca', l:'Laboratorio · Calcio ≤ 7 mg/dL (o ↓25%)', type:'tog'},
+   {id:'cr', l:'Clínico · Creatinina ≥ 1.5× LSN', type:'tog'},
+   {id:'arr', l:'Clínico · Arritmia / muerte súbita', type:'tog'},
+   {id:'sz', l:'Clínico · Convulsión', type:'tog'}]}
+]},
+
+{group:'Reumatología', tools:[
+
+ {id:'sle2019', name:'LES — EULAR/ACR 2019', sub:'Criterios de clasificación',
+  desc:'Requiere ANA ≥ 1:80 (alguna vez) como criterio de entrada, al menos un criterio clínico y ≥ 10 puntos. Cuente solo el ítem de mayor peso por dominio y solo si no hay explicación más probable.',
+  note:'Son criterios de <b>clasificación</b> (investigación), no de diagnóstico. La nefritis lúpica clase III/IV sola (10 pts) con ANA+ ya clasifica.',
+  kind:'custom', fields:[
+   {id:'ana', l:'ANA ≥ 1:80 (criterio de entrada)', type:'tog'},
+   {id:'constit', l:'Constitucional', type:'select', opts:[['Ninguno',0],['Fiebre',2]]},
+   {id:'hema', l:'Hematológico', type:'select', opts:[['Ninguno',0],['Leucopenia',3],['Trombocitopenia',4],['Hemólisis autoinmune',4]]},
+   {id:'neuro', l:'Neuropsiquiátrico', type:'select', opts:[['Ninguno',0],['Delirium',2],['Psicosis',3],['Convulsión',5]]},
+   {id:'muco', l:'Mucocutáneo', type:'select', opts:[['Ninguno',0],['Alopecia no cicatricial',2],['Úlceras orales',2],['Lupus cutáneo subagudo/discoide',4],['Lupus cutáneo agudo',6]]},
+   {id:'seros', l:'Serositis', type:'select', opts:[['Ninguno',0],['Derrame pleural/pericárdico',5],['Pericarditis aguda',6]]},
+   {id:'msk', l:'Musculoesquelético', type:'select', opts:[['Ninguno',0],['Compromiso articular',6]]},
+   {id:'renal', l:'Renal', type:'select', opts:[['Ninguno',0],['Proteinuria > 0.5 g/24h',4],['Nefritis clase II o V',8],['Nefritis clase III o IV',10]]},
+   {id:'apl', l:'Anticuerpos antifosfolípidos', type:'select', opts:[['Ninguno',0],['Presentes',2]]},
+   {id:'compl', l:'Complemento', type:'select', opts:[['Ninguno',0],['C3 o C4 bajo',3],['C3 y C4 bajos',4]]},
+   {id:'sleab', l:'Anticuerpos específicos', type:'select', opts:[['Ninguno',0],['Anti-dsDNA o anti-Sm',6]]}]},
+
+ {id:'sledai', name:'SLEDAI-2K', sub:'Actividad / agudización del LES',
+  desc:'Marque las manifestaciones presentes en los últimos 10 días. El peso aparece en cada ítem.',
+  kind:'sum', items:[
+   {l:'Convulsión', h:'8', p:8},{l:'Psicosis', h:'8', p:8},{l:'Síndrome orgánico cerebral', h:'8', p:8},
+   {l:'Alteración visual', h:'8', p:8},{l:'Compromiso de pares craneales', h:'8', p:8},{l:'Cefalea lúpica', h:'8', p:8},
+   {l:'ACV', h:'8', p:8},{l:'Vasculitis', h:'8', p:8},
+   {l:'Artritis', h:'4', p:4},{l:'Miositis', h:'4', p:4},{l:'Cilindros urinarios', h:'4', p:4},
+   {l:'Hematuria', h:'4', p:4},{l:'Proteinuria', h:'4', p:4},{l:'Piuria', h:'4', p:4},
+   {l:'Rash inflamatorio', h:'2', p:2},{l:'Alopecia', h:'2', p:2},{l:'Úlceras mucosas', h:'2', p:2},
+   {l:'Pleuresía', h:'2', p:2},{l:'Pericarditis', h:'2', p:2},{l:'Complemento bajo', h:'2', p:2},{l:'↑ anti-dsDNA', h:'2', p:2},
+   {l:'Fiebre', h:'1', p:1},{l:'Trombocitopenia', h:'1', p:1},{l:'Leucopenia', h:'1', p:1}],
+  interp:t=>{ let color,x; if(t===0){color='low';x='Sin actividad';} else if(t<=5){color='low';x='Actividad leve';} else if(t<=10){color='mid';x='Actividad moderada';} else if(t<=19){color='high';x='Actividad alta';} else {color='high';x='Actividad muy alta';}
+   return{tier:x+` (${t})`,color,html:'Un aumento ≥ 3–4 puntos respecto al control previo sugiere agudización (flare).'};}},
+
+ {id:'anca_gpa', name:'Vasculitis — GPA', sub:'ACR/EULAR 2022 (granulomatosis con poliangeítis)',
+  desc:'Requiere diagnóstico de vasculitis de vaso pequeño/mediano y exclusión de imitadores. Clasifica como GPA si ≥ 5 puntos.',
+  kind:'sum', items:[
+   {l:'Compromiso nasal', h:'secreción sanguinolenta, úlceras, costras, congestión/obstrucción o perforación septal · +3', p:3},
+   {l:'Compromiso cartilaginoso', h:'oído/nariz, voz/estridor, endobronquial · +2', p:2},
+   {l:'Hipoacusia conductiva o neurosensorial', h:'+1', p:1},
+   {l:'C-ANCA o anti-PR3 positivo', h:'+5', p:5},
+   {l:'Nódulos, masa o cavitación pulmonar', h:'+2', p:2},
+   {l:'Granuloma o células gigantes en biopsia', h:'+2', p:2},
+   {l:'Inflamación nasosinusal/mastoiditis en imagen', h:'+1', p:1},
+   {l:'Glomerulonefritis pauci-inmune en biopsia', h:'+1', p:1},
+   {l:'P-ANCA o anti-MPO positivo', h:'−1', p:-1},
+   {l:'Eosinófilos ≥ 1×10⁹/L', h:'−4', p:-4}],
+  interp:t=>t>=5?{tier:`Clasifica como GPA (${t})`,color:'high',html:'≥ 5 puntos. Cumple criterios de clasificación de GPA (ACR/EULAR 2022).'}
+   :{tier:`No clasifica (${t})`,color:'low',html:'< 5 puntos para GPA; evalúe los criterios de MPA o EGPA.'}},
+
+ {id:'anca_mpa', name:'Vasculitis — MPA', sub:'ACR/EULAR 2022 (poliangeítis microscópica)',
+  desc:'En el contexto de vasculitis de vaso pequeño/mediano confirmada. Clasifica como MPA si ≥ 5 puntos.',
+  kind:'sum', items:[
+   {l:'P-ANCA o anti-MPO positivo', h:'+6', p:6},
+   {l:'Fibrosis pulmonar o EPID en imagen', h:'+3', p:3},
+   {l:'Glomerulonefritis pauci-inmune en biopsia', h:'+3', p:3},
+   {l:'C-ANCA o anti-PR3 positivo', h:'−1', p:-1},
+   {l:'Compromiso nasal', h:'secreción, úlceras, costras, obstrucción o perforación · −3', p:-3},
+   {l:'Eosinófilos ≥ 1×10⁹/L', h:'−4', p:-4}],
+  interp:t=>t>=5?{tier:`Clasifica como MPA (${t})`,color:'high',html:'≥ 5 puntos. Cumple criterios de clasificación de MPA (ACR/EULAR 2022).'}
+   :{tier:`No clasifica (${t})`,color:'low',html:'< 5 puntos para MPA; evalúe GPA o EGPA.'}},
+
+ {id:'anca_egpa', name:'Vasculitis — EGPA', sub:'ACR/EULAR 2022 (granulomatosis eosinofílica)',
+  desc:'En el contexto de vasculitis de vaso pequeño/mediano confirmada. Clasifica como EGPA si ≥ 6 puntos.',
+  kind:'sum', items:[
+   {l:'Enfermedad obstructiva de la vía aérea', h:'+3', p:3},
+   {l:'Pólipos nasales', h:'+3', p:3},
+   {l:'Mononeuritis múltiple', h:'+1', p:1},
+   {l:'Eosinófilos ≥ 1×10⁹/L', h:'+5', p:5},
+   {l:'Inflamación extravascular eosinofílica en biopsia', h:'+2', p:2},
+   {l:'C-ANCA o anti-PR3 positivo', h:'−3', p:-3},
+   {l:'Hematuria', h:'−1', p:-1}],
+  interp:t=>t>=6?{tier:`Clasifica como EGPA (${t})`,color:'high',html:'≥ 6 puntos. Cumple criterios de clasificación de EGPA (ACR/EULAR 2022).'}
+   :{tier:`No clasifica (${t})`,color:'low',html:'< 6 puntos para EGPA; evalúe GPA o MPA.'}},
+
+ {id:'ra2010', name:'Artritis reumatoide — ACR/EULAR 2010', sub:'Criterios de clasificación',
+  desc:'Aplicable a pacientes con ≥ 1 articulación con sinovitis clínica no explicada mejor por otra enfermedad. Clasifica como AR definida si ≥ 6/10.',
+  kind:'sum', items:[
+   {l:'Compromiso articular', opts:[['1 articulación grande',0],['2–10 grandes',1],['1–3 pequeñas',2],['4–10 pequeñas',3],['> 10 (≥1 pequeña)',5]]},
+   {l:'Serología', opts:[['FR y ACPA negativos',0],['FR o ACPA positivo bajo',2],['FR o ACPA positivo alto',3]]},
+   {l:'Reactantes de fase aguda', opts:[['PCR y VSG normales',0],['PCR o VSG anormal',1]]},
+   {l:'Duración de los síntomas', opts:[['< 6 semanas',0],['≥ 6 semanas',1]]}],
+  interp:t=>t>=6?{tier:`AR definida (${t}/10)`,color:'high',html:'≥ 6 puntos: cumple clasificación de artritis reumatoide.'}
+   :{tier:`No clasifica (${t}/10)`,color:'low',html:'< 6 puntos; reevalúe en el tiempo (criterios de clasificación, no diagnósticos).'}},
+
+ {id:'das28', name:'DAS28-VSG', sub:'Actividad de la AR',
+  desc:'Índice de actividad sobre 28 articulaciones usando la VSG.',
+  kind:'custom', fields:[
+   {id:'tjc', l:'Articulaciones dolorosas (0–28)', type:'num', def:0},
+   {id:'sjc', l:'Articulaciones inflamadas (0–28)', type:'num', def:0},
+   {id:'esr', l:'VSG', hint:'mm/h', type:'num', def:20},
+   {id:'gh', l:'Salud global del paciente', hint:'EVA 0–100', type:'num', def:20}]},
+
+ {id:'cdai', name:'CDAI', sub:'Actividad de la AR (sin reactantes)',
+  desc:'Índice clínico de actividad: no requiere laboratorio.',
+  kind:'custom', fields:[
+   {id:'tjc', l:'Articulaciones dolorosas (0–28)', type:'num', def:0},
+   {id:'sjc', l:'Articulaciones inflamadas (0–28)', type:'num', def:0},
+   {id:'pga', l:'Evaluación global del paciente (0–10)', type:'num', def:0},
+   {id:'phga', l:'Evaluación global del médico (0–10)', type:'num', def:0}]},
+
+ {id:'ssc2013', name:'Esclerosis sistémica — ACR/EULAR 2013', sub:'Criterios de clasificación',
+  desc:'El engrosamiento cutáneo proximal a las MCP en ambas manos es criterio suficiente (9 pts). Clasifica como ES definida si ≥ 9 puntos.',
+  kind:'sum', items:[
+   {l:'Engrosamiento cutáneo de los dedos', opts:[['Ninguno',0],['Dedos hinchados (puffy)',2],['Esclerodactilia',4],['Proximal a las MCP — suficiente',9]]},
+   {l:'Lesiones de pulpejo', opts:[['Ninguna',0],['Úlceras digitales',2],['Cicatrices puntiformes',3]]},
+   {l:'Telangiectasias', h:'+2', p:2},
+   {l:'Capilares periungueales anormales', h:'+2', p:2},
+   {l:'HAP y/o enfermedad pulmonar intersticial', h:'+2', p:2},
+   {l:'Fenómeno de Raynaud', h:'+3', p:3},
+   {l:'Autoanticuerpos (anticentrómero, anti-Scl-70, anti-ARN pol III)', h:'+3', p:3}],
+  interp:t=>t>=9?{tier:`ES definida (${t})`,color:'high',html:'≥ 9 puntos: cumple clasificación de esclerosis sistémica. La severidad cutánea se cuantifica con el Rodnan modificado (mRSS).'}
+   :{tier:`No clasifica (${t})`,color:'low',html:'< 9 puntos para esclerosis sistémica.'}},
+
+ {id:'iim2017', name:'Miopatías inflamatorias — EULAR/ACR 2017', sub:'Criterios de clasificación (DM/PM)',
+  desc:'Puntaje ponderado que se traduce en probabilidad de miopatía inflamatoria idiopática. Active la biopsia si dispone de histología muscular.',
+  note:'Cortes: <b>probable</b> ≥ 5.5 (≥ 6.7 con biopsia) · <b>definida</b> ≥ 7.5 (≥ 8.7 con biopsia) · posible ≥ 5.3 (≥ 6.5). Subclasifique DM/PM/IBM/JDM con el árbol del consenso. Fines de investigación.',
+  kind:'custom', fields:[
+   {id:'biopsy', l:'Biopsia muscular disponible', type:'tog'},
+   {id:'age', l:'Edad de inicio', type:'select', opts:[['< 18 años','lt18'],['18–40 años','18_40'],['≥ 40 años','ge40']]},
+   {id:'wkUE', l:'Debilidad proximal de MMSS (simétrica, progresiva)', type:'tog'},
+   {id:'wkLE', l:'Debilidad proximal de MMII', type:'tog'},
+   {id:'neck', l:'Flexores del cuello más débiles que extensores', type:'tog'},
+   {id:'legprox', l:'En piernas, proximal más débil que distal', type:'tog'},
+   {id:'helio', l:'Eritema en heliotropo', type:'tog'},
+   {id:'gpap', l:'Pápulas de Gottron', type:'tog'},
+   {id:'gsign', l:'Signo de Gottron', type:'tog'},
+   {id:'dysph', l:'Disfagia o dismotilidad esofágica', type:'tog'},
+   {id:'jo1', l:'Anti-Jo-1 positivo', type:'tog'},
+   {id:'enz', l:'CK / LDH / AST / ALT elevadas', type:'tog'},
+   {id:'bx_endo', l:'Biopsia: infiltrado endomisial rodeando fibras', type:'tog'},
+   {id:'bx_peri', l:'Biopsia: infiltrado perimisial/perivascular', type:'tog'},
+   {id:'bx_atro', l:'Biopsia: atrofia perifascicular', type:'tog'},
+   {id:'bx_vac', l:'Biopsia: vacuolas ribeteadas', type:'tog'}]},
+
+ {id:'sjogren2016', name:'Sjögren — ACR/EULAR 2016', sub:'Criterios de clasificación',
+  desc:'Aplicable a pacientes con síntomas de sequedad ocular/oral (o sospecha por ESSDAI) y sin criterios de exclusión. Clasifica si la suma es ≥ 4.',
+  note:'<b>Exclusiones:</b> radioterapia de cabeza/cuello, hepatitis C activa, VIH/sida, sarcoidosis, amiloidosis, enfermedad injerto contra huésped y enfermedad relacionada con IgG4.',
+  kind:'sum', items:[
+   {l:'Sialadenitis linfocítica focal con focus score ≥ 1 (biopsia labial)', h:'+3', p:3},
+   {l:'Anti-SSA/Ro positivo', h:'+3', p:3},
+   {l:'Ocular Staining Score ≥ 5 (o van Bijsterveld ≥ 4) en ≥ 1 ojo', h:'+1', p:1},
+   {l:'Schirmer ≤ 5 mm/5 min en ≥ 1 ojo', h:'+1', p:1},
+   {l:'Flujo salival no estimulado ≤ 0.1 mL/min', h:'+1', p:1}],
+  interp:t=>t>=4?{tier:`Clasifica como Sjögren (${t})`,color:'high',html:'≥ 4 puntos: cumple clasificación de síndrome de Sjögren (con inclusión y sin exclusiones).'}
+   :{tier:`No clasifica (${t})`,color:'low',html:'< 4 puntos para síndrome de Sjögren.'}},
+
+ {id:'essdai', name:'ESSDAI', sub:'Actividad del Sjögren',
+  desc:'Actividad sistémica por dominios (puntos ya ponderados). Seleccione el nivel de actividad de cada dominio.',
+  kind:'sum', items:[
+   {l:'Constitucional', opts:[['No',0],['Baja',3],['Moderada',6]]},
+   {l:'Linfadenopatía', opts:[['No',0],['Baja',4],['Moderada',8],['Alta',12]]},
+   {l:'Glandular', opts:[['No',0],['Baja',2],['Moderada',4]]},
+   {l:'Articular', opts:[['No',0],['Baja',2],['Moderada',4],['Alta',6]]},
+   {l:'Cutáneo', opts:[['No',0],['Baja',3],['Moderada',6],['Alta',9]]},
+   {l:'Pulmonar', opts:[['No',0],['Baja',5],['Moderada',10],['Alta',15]]},
+   {l:'Renal', opts:[['No',0],['Baja',5],['Moderada',10],['Alta',15]]},
+   {l:'Muscular', opts:[['No',0],['Baja',6],['Moderada',12],['Alta',18]]},
+   {l:'SNP (periférico)', opts:[['No',0],['Baja',5],['Moderada',10],['Alta',15]]},
+   {l:'SNC (central)', opts:[['No',0],['Baja',5],['Moderada',10],['Alta',15]]},
+   {l:'Hematológico', opts:[['No',0],['Baja',2],['Moderada',4],['Alta',6]]},
+   {l:'Biológico', opts:[['No',0],['Baja',1],['Moderada',2]]}],
+  interp:t=>{ let color,x; if(t<5){color='low';x='Actividad baja';} else if(t<=13){color='mid';x='Actividad moderada';} else {color='high';x='Actividad alta';}
+   return{tier:x+` (${t})`,color,html:'Umbrales: baja < 5 · moderada 5–13 · alta ≥ 14.'};}}
+]}
+];
+
+/* ===== Custom compute ===== */
+function computeCustom(id,g){
+ if(id==='ddimer'){const age=g('age'),dd=g('dd'),y=+g('years');
+   const thr=age>50?Math.round(age*10):500; const yearsThr=y?500:1000;
+   const negAge=dd<thr, negYears=dd<yearsThr;
+   return {big:dd||'—',unit:'ng/mL',color:(negAge?'low':'high'),tier:'Dímero D',
+    html:`Umbral ajustado por edad: <b>${thr} ng/mL</b> → ${negAge?'<b>negativo</b> (descarta TEP con probabilidad no alta)':'positivo (solicite angioTC)'}.<br>YEARS: umbral <b>${yearsThr} ng/mL</b> → ${negYears?'negativo':'positivo'}.`};}
+ if(id==='ckdepi'){const scr=g('scr'),age=g('age'),sex=g('sex');
+   if(!(scr>0)||!(age>0))return{big:'—',unit:'',color:'info',tier:' ',html:'Ingrese datos válidos.'};
+   const k=sex==='f'?0.7:0.9,a=sex==='f'?-0.241:-0.302,r=scr/k;
+   let e=142*Math.pow(Math.min(r,1),a)*Math.pow(Math.max(r,1),-1.200)*Math.pow(0.9938,age); if(sex==='f')e*=1.012; e=Math.round(e);
+   let color,st; if(e>=90){color='low';st='G1 — normal';} else if(e>=60){color='low';st='G2 — leve';} else if(e>=45){color='mid';st='G3a';} else if(e>=30){color='mid';st='G3b';} else if(e>=15){color='high';st='G4';} else {color='high';st='G5 — falla';}
+   return{big:e,unit:'mL/min/1.73m²',color,tier:st,html:'Interprete junto con la albuminuria para clasificar la ERC.'};}
+ if(id==='cockcroft'){const age=g('age'),wt=g('wt'),scr=g('scr'),sex=g('sex');
+   if(!(scr>0))return{big:'—',unit:'',color:'info',tier:' ',html:'Ingrese datos válidos.'};
+   let cl=((140-age)*wt)/(72*scr); if(sex==='f')cl*=0.85; cl=Math.round(cl);
+   let color; if(cl>=60)color='low'; else if(cl>=30)color='mid'; else color='high';
+   return{big:cl,unit:'mL/min',color,tier:'ClCr estimado',html:'Usado para ajuste de fármacos (p. ej. dosificación de DOAC). Poco fiable en obesidad o creatinina inestable.'};}
+ if(id==='meldna'){let bili=Math.max(g('bili'),1),inr=Math.max(g('inr'),1),cr=Math.min(Math.max(g('cr'),1),4),na=clamp(g('na'),125,137);
+   let meld=Math.round(10*(0.957*ln(cr)+0.378*ln(bili)+1.120*ln(inr)+0.643));
+   meld=clamp(meld,6,40);
+   let meldna=meld; if(meld>11) meldna=Math.round(meld+1.32*(137-na)-(0.033*meld*(137-na)));
+   meldna=clamp(meldna,6,40);
+   let color,m; if(meldna<10){color='low';m='~1.9% a 90 d';} else if(meldna<=19){color='mid';m='~6% a 90 d';} else if(meldna<=29){color='high';m='~19.6% a 90 d';} else {color='high';m='≥ 52% a 90 d';}
+   return{big:meldna,unit:'MELD-Na',color,tier:'Pronóstico',html:`Mortalidad estimada <b>${m}</b>. El MELD 3.0 es el estándar de asignación actual.`};}
+ if(id==='saag'){const s=g('salb'),a=g('aalb'); const v=(s-a);
+   if(isNaN(v))return{big:'—',unit:'',color:'info',tier:' ',html:'Ingrese datos.'};
+   const high=v>=1.1;
+   return{big:v.toFixed(1),unit:'g/dL',color:(high?'info':'mid'),tier:high?'GASA ≥ 1.1':'GASA < 1.1',
+    html:high?'<b>Hipertensión portal:</b> cirrosis, falla cardiaca, Budd-Chiari, metástasis hepáticas masivas, hígado graso agudo.'
+            :'<b>No portal:</b> carcinomatosis peritoneal, TB peritoneal, ascitis pancreática, síndrome nefrótico, serositis.'};}
+ if(id==='blatchford'){let s=+g('bun')+ (+g('sbp'));
+   if(g('pulse'))s+=1; if(g('melena'))s+=1; if(g('syncope'))s+=2; if(g('liver'))s+=2; if(g('cardiac'))s+=2;
+   const hb=g('hb'),sex=g('sex'); let hbp=0;
+   if(sex==='m'){ if(hb<10)hbp=6; else if(hb<12)hbp=3; else if(hb<13)hbp=1; }
+   else { if(hb<10)hbp=6; else if(hb<12)hbp=1; }
+   s+=hbp;
+   let color; if(s===0)color='low'; else if(s<=5)color='mid'; else color='high';
+   return{big:s,unit:'puntos',color,tier:'Glasgow-Blatchford',html:(s===0?'Riesgo muy bajo: considere manejo ambulatorio con endoscopia diferida.':'Riesgo de intervención; maneje intrahospitalario y valore endoscopia.')};}
+ if(id==='pesi'){let s=Math.round(g('age')||0); if(g('male'))s+=10; if(g('cancer'))s+=30; if(g('hf'))s+=10; if(g('lung'))s+=10;
+   if(g('hr'))s+=20; if(g('sbp'))s+=30; if(g('rr'))s+=20; if(g('temp'))s+=20; if(g('ams'))s+=60; if(g('sao2'))s+=20;
+   let cls,color,m; if(s<=65){cls='Clase I';color='low';m='0–1.6%';} else if(s<=85){cls='Clase II';color='low';m='1.7–3.5%';}
+   else if(s<=105){cls='Clase III';color='mid';m='3.2–7.1%';} else if(s<=125){cls='Clase IV';color='high';m='4–11.4%';} else {cls='Clase V';color='high';m='10–24.5%';}
+   return{big:s,unit:'puntos',color,tier:cls,html:`Mortalidad a 30 d <b>${m}</b>. Clases I–II: bajo riesgo, candidato a manejo ambulatorio.`};}
+ if(id==='bap65'){let f=0; if(g('bun'))f++; if(g('ams'))f++; if(g('pulse'))f++; const old=g('age');
+   let cls,color,m;
+   if(f===0&&!old){cls='Clase I';color='low';m='~1%';}
+   else if(f===0&&old){cls='Clase II';color='low';m='~2%';}
+   else if(f===1){cls='Clase III';color='mid';m='~6%';}
+   else if(f===2){cls='Clase IV';color='high';m='~14%';}
+   else {cls='Clase V';color='high';m='~25%';}
+   return{big:cls.replace('Clase ',''),unit:'clase BAP-65',color,tier:cls,html:`Mortalidad intrahospitalaria aprox. <b>${m}</b>; clases IV–V con mayor necesidad de ventilación mecánica.`};}
+ if(id==='idsaats'){let maj=(g('maj1')?1:0)+(g('maj2')?1:0); let min=0; for(let i=1;i<=9;i++) if(g('m'+i)) min++;
+   const severe=maj>=1||min>=3;
+   return{big:`${maj}M·${min}m`,unit:'mayores · menores',color:(severe?'high':'low'),tier:severe?'NAC grave':'No grave',
+    html:severe?'<b>Criterios de NAC grave</b> (≥1 mayor o ≥3 menores): considere ingreso a UCI.':'No cumple criterios de gravedad por IDSA/ATS.'};}
+ if(id==='tls'){let lab=(g('k')?1:0)+(g('ua')?1:0)+(g('ph')?1:0)+(g('ca')?1:0);
+   const clin=g('cr')||g('arr')||g('sz'); const labTLS=lab>=2; const clinTLS=labTLS&&clin;
+   let color,tier,html;
+   if(clinTLS){color='high';tier='Lisis tumoral clínica';html='Lisis de laboratorio + compromiso de órgano. <b>Manejo urgente:</b> hidratación, rasburicasa/alopurinol, manejo de electrolitos y monitoreo.';}
+   else if(labTLS){color='mid';tier='Lisis tumoral de laboratorio';html='≥2 alteraciones metabólicas. Vigile función renal, ECG y electrolitos; profilaxis/tratamiento según riesgo.';}
+   else {color='low';tier='No cumple criterios';html='< 2 alteraciones de laboratorio. Mantenga profilaxis en tumores de alto riesgo.';}
+   return{big:lab,unit:'alt. de laboratorio',color,tier,html};}
+ if(id==='findrisc'){let s=0; const age=g('age'),wt=g('wt'),ht=g('ht')/100,waist=g('waist'),sex=g('sex');
+   if(age>64)s+=4; else if(age>=55)s+=3; else if(age>=45)s+=2;
+   const bmi=ht>0?wt/(ht*ht):0; if(bmi>30)s+=3; else if(bmi>=25)s+=1;
+   if(sex==='m'){ if(waist>102)s+=4; else if(waist>=94)s+=3; } else { if(waist>88)s+=4; else if(waist>=80)s+=3; }
+   if(!g('act'))s+=2; if(!g('veg'))s+=1; if(g('bp'))s+=2; if(g('glu'))s+=5; s+=+g('fam');
+   let color,tier,risk; if(s<7){color='low';tier='Bajo';risk='≈1%';} else if(s<=11){color='low';tier='Levemente elevado';risk='≈4%';}
+   else if(s<=14){color='mid';tier='Moderado';risk='≈17%';} else if(s<=20){color='high';tier='Alto';risk='≈33%';} else {color='high';tier='Muy alto';risk='≈50%';}
+   return{big:s,unit:'puntos',color,tier,html:`Riesgo de DM2 a 10 años <b>${risk}</b>${bmi?` · IMC ${bmi.toFixed(1)}`:''}.`};}
+ if(id==='light'){const pp=g('pp'),sp=g('sp'),pl=g('pl'),sl=g('sl'),uln=g('uln');
+   if(!(sp>0)||!(sl>0)||!(uln>0))return{big:'—',unit:'',color:'info',tier:' ',html:'Ingrese todos los valores.'};
+   const r1=pp/sp>0.5, r2=pl/sl>0.6, r3=pl>(2/3*uln); const exud=r1||r2||r3;
+   return{big:exud?'Exudado':'Trasudado',unit:'',color:(exud?'mid':'low'),tier:'Criterios de Light',
+    html:`Prot. pleural/sérica ${(pp/sp).toFixed(2)} (${r1?'+':'–'}) · LDH pleural/sérica ${(pl/sl).toFixed(2)} (${r2?'+':'–'}) · LDH pleural >⅔ LSN (${r3?'+':'–'}). `+(exud?'<b>Exudado:</b> investigue infección, malignidad, TEP, etc.':'<b>Trasudado:</b> falla cardiaca, cirrosis, síndrome nefrótico.')};}
+ if(id==='hypona'){const na=g('na'),so=+g('sosm'),vol=+g('vol'),uo=+g('uosm'),un=+g('una');
+   let html='',tier='Enfoque',color='info';
+   if(so===3){tier='Hiponatremia hipertónica';html='Osmolaridad alta: hiperglucemia o manitol. Corrija el sodio por la glucosa (pseudo/translocacional).';}
+   else if(so===2){tier='Hiponatremia isotónica';html='Pseudohiponatremia: hiperproteinemia o hiperlipidemia. Verifique con osmolaridad medida.';}
+   else { // hipotónica
+     if(uo===1){tier='Hipotónica · orina diluida';color='low';html='Osm. urinaria ≤100: polidipsia primaria, baja ingesta de solutos (potomanía) o reset osmostat.';}
+     else {
+       if(vol===1){tier='Hipotónica · hipovolémica';color='mid';html=(un===1?'Na urinario <30: pérdidas extrarrenales (gastrointestinales, tercer espacio).':'Na urinario ≥30: pérdidas renales (diuréticos, hipoaldosteronismo, nefropatía perdedora de sal).');}
+       else if(vol===2){tier='Hipotónica · euvolémica';color='mid';html='Sospeche SIADH (Na urinario ≥30, orina concentrada); descarte hipotiroidismo e insuficiencia suprarrenal.';}
+       else {tier='Hipotónica · hipervolémica';color='high';html=(un===1?'Na urinario <30: falla cardiaca, cirrosis, síndrome nefrótico.':'Na urinario ≥30: enfermedad renal crónica/avanzada.');}
+     }
+   }
+   const sev = na<120?'severa':(na<130?'moderada':'leve');
+   return{big:na||'—',unit:'mEq/L Na',color,tier,html:`Hiponatremia <b>${sev}</b>. ${html}<br><span style="color:var(--ink-soft)">Corrija máx. 6–8 mEq/L en 24 h para evitar desmielinización osmótica.</span>`};}
+ if(id==='news2'){const sv=k=>+g(k)||0;
+   const rr=sv('rr'),sbp=sv('sbp'),pulse=sv('pulse'),consc=sv('consc'),temp=sv('temp');
+   const spo2=g('spo2'),onO2=g('o2'),scale=''+g('scale'); let sp=0;
+   if(scale==='2'){ if(spo2<=83)sp=3; else if(spo2<=85)sp=2; else if(spo2<=87)sp=1; else if(spo2<=92)sp=0;
+     else { if(!onO2)sp=0; else if(spo2<=94)sp=1; else if(spo2<=96)sp=2; else sp=3; } }
+   else { if(spo2>=96)sp=0; else if(spo2>=94)sp=1; else if(spo2>=92)sp=2; else sp=3; }
+   const o2pts=onO2?2:0; const comps=[rr,sp,o2pts,sbp,pulse,consc,temp];
+   const total=comps.reduce((a,b)=>a+b,0); const anyThree=comps.some(x=>x>=3);
+   let color,act;
+   if(total>=7){color='high';act='Riesgo alto: respuesta de emergencia / valoración por cuidado crítico.';}
+   else if(total>=5){color='mid';act='Riesgo medio: revisión urgente por personal competente.';}
+   else if(anyThree){color='mid';act='Riesgo bajo-medio: un parámetro en 3 obliga a revisión urgente.';}
+   else {color='low';act='Riesgo bajo: monitoreo de rutina.';}
+   return{big:total,unit:'puntos NEWS2',color,tier:'Puntaje total',html:`${act}<br><span style="color:var(--ink-soft)">SpO₂ aporta ${sp} y el oxígeno ${o2pts} punto(s).</span>`};}
+ if(id==='psi'){const age=g('age'),sex=g('sex'); let pts = sex==='f'?Math.max(age-10,0):age;
+   const ks=['nh','neo','liver','chf','cv','renal','ams','rr','sbp','temp','pulse','ph','bun','na','glu','hct','pao2','eff'];
+   const vmap={nh:10,neo:30,liver:20,chf:10,cv:10,renal:10,ams:20,rr:20,sbp:20,temp:15,pulse:10,ph:30,bun:20,na:20,glu:10,hct:10,pao2:10,eff:10};
+   ks.forEach(k=>{if(g(k))pts+=vmap[k];}); const anyRisk=ks.some(k=>g(k)); pts=Math.round(pts);
+   let cls,color,m,disp;
+   if(age<50&&!anyRisk){cls='Clase I';color='low';m='0.1%';disp='Manejo ambulatorio.';}
+   else if(pts<=70){cls='Clase II';color='low';m='0.6%';disp='Manejo ambulatorio.';}
+   else if(pts<=90){cls='Clase III';color='mid';m='0.9–2.8%';disp='Observación breve / ingreso corto.';}
+   else if(pts<=130){cls='Clase IV';color='high';m='8.2–9.3%';disp='Hospitalización.';}
+   else {cls='Clase V';color='high';m='27–31%';disp='Hospitalización; valore UCI.';}
+   return{big:(age<50&&!anyRisk)?'I':pts,unit:'puntos PSI',color,tier:cls,html:`Mortalidad a 30 d ≈ <b>${m}</b>. ${disp}`};}
+ if(id==='apache2'){const sv=k=>+g(k)||0;
+   let aps=sv('temp')+sv('map')+sv('hr')+sv('rr')+sv('oxy')+sv('ph')+sv('na')+sv('k')+sv('hct')+sv('wbc');
+   let crp=sv('cr'); if(g('arf'))crp*=2; aps+=crp;
+   const gcs=clamp(g('gcs')||15,3,15); aps+=(15-gcs);
+   const age=g('age')||0; let ap; if(age<=44)ap=0; else if(age<=54)ap=2; else if(age<=64)ap=3; else if(age<=74)ap=5; else ap=6;
+   const total=aps+ap+(+g('chronic'));
+   let color,m; if(total<=9){color='low';m='~8%';} else if(total<=14){color='mid';m='~15%';} else if(total<=19){color='mid';m='~25%';} else if(total<=24){color='high';m='~40%';} else if(total<=29){color='high';m='~55%';} else {color='high';m='≥70%';}
+   return{big:total,unit:'puntos APACHE II',color,tier:'Gravedad',html:`Mortalidad hospitalaria estimada <b>${m}</b> (varía según el diagnóstico de ingreso). Calcule con los peores valores de las primeras 24 h.`};}
+ if(id==='sle2019'){const ana=g('ana');
+   const clin=['constit','hema','neuro','muco','seros','msk','renal']; const imm=['apl','compl','sleab'];
+   let total=0,anyClin=false; clin.forEach(k=>{const v=+g(k); total+=v; if(v>0)anyClin=true;}); imm.forEach(k=>{total+=+g(k);});
+   if(!ana) return{big:total,unit:'puntos',color:'info',tier:'Sin criterio de entrada',html:'Sin ANA ≥ 1:80 (alguna vez) <b>no se clasifica</b> como LES por estos criterios.'};
+   const classify=anyClin&&total>=10;
+   let color = classify?'high':(total>=10?'mid':'low');
+   let tier = classify?'Clasifica como LES':(total>=10&&!anyClin?'Falta criterio clínico':'No clasifica');
+   let html = classify?'ANA+, ≥ 1 criterio clínico y ≥ 10 puntos → <b>se clasifica como LES</b> (investigación, no diagnóstico).'
+     :(total>=10&&!anyClin?'Alcanza 10 puntos pero <b>se requiere al menos un criterio clínico</b>.':'No alcanza el umbral de 10 puntos.');
+   return{big:total,unit:'puntos',color,tier,html};}
+ if(id==='das28'){const tjc=Math.max(g('tjc')||0,0),sjc=Math.max(g('sjc')||0,0),esr=Math.max(g('esr')||1,1),gh=g('gh')||0;
+   let d=0.56*Math.sqrt(tjc)+0.28*Math.sqrt(sjc)+0.70*ln(esr)+0.014*gh; d=Math.round(d*100)/100;
+   let color,x; if(d<2.6){color='low';x='Remisión';} else if(d<=3.2){color='low';x='Actividad baja';} else if(d<=5.1){color='mid';x='Actividad moderada';} else {color='high';x='Actividad alta';}
+   return{big:d.toFixed(2),unit:'DAS28-VSG',color,tier:x,html:'Umbrales: remisión < 2.6 · baja ≤ 3.2 · moderada > 3.2–5.1 · alta > 5.1.'};}
+ if(id==='cdai'){const t=(g('tjc')||0)+(g('sjc')||0)+(g('pga')||0)+(g('phga')||0);
+   let color,x; if(t<=2.8){color='low';x='Remisión';} else if(t<=10){color='low';x='Actividad baja';} else if(t<=22){color='mid';x='Actividad moderada';} else {color='high';x='Actividad alta';}
+   return{big:Math.round(t*10)/10,unit:'CDAI',color,tier:x,html:'Umbrales: remisión ≤ 2.8 · baja > 2.8–10 · moderada > 10–22 · alta > 22.'};}
+ if(id==='iim2017'){const bx=g('biopsy');
+   const W = bx?{age18:1.5,age40:2.2,ue:0.7,le:0.5,neck:1.6,legprox:1.2,helio:3.2,gpap:2.7,gsign:3.7,dysph:0.6,jo1:3.8,enz:1.4,endo:1.7,peri:1.2,atro:1.9,vac:3.1}
+              :{age18:1.3,age40:2.1,ue:0.7,le:0.8,neck:1.9,legprox:0.9,helio:3.1,gpap:2.1,gsign:3.3,dysph:0.7,jo1:3.9,enz:1.3,endo:0,peri:0,atro:0,vac:0};
+   let s=0; const age=g('age'); if(age==='18_40')s+=W.age18; else if(age==='ge40')s+=W.age40;
+   if(g('wkUE'))s+=W.ue; if(g('wkLE'))s+=W.le; if(g('neck'))s+=W.neck; if(g('legprox'))s+=W.legprox;
+   if(g('helio'))s+=W.helio; if(g('gpap'))s+=W.gpap; if(g('gsign'))s+=W.gsign; if(g('dysph'))s+=W.dysph;
+   if(g('jo1'))s+=W.jo1; if(g('enz'))s+=W.enz;
+   if(bx){ if(g('bx_endo'))s+=W.endo; if(g('bx_peri'))s+=W.peri; if(g('bx_atro'))s+=W.atro; if(g('bx_vac'))s+=W.vac; }
+   s=Math.round(s*10)/10; const cutProb=bx?6.7:5.5, cutDef=bx?8.7:7.5, cutPos=bx?6.5:5.3;
+   let color,tier; if(s>=cutDef){color='high';tier='IIM definida (≥ 90%)';} else if(s>=cutProb){color='high';tier='IIM probable (≥ 55%)';} else if(s>=cutPos){color='mid';tier='IIM posible (≥ 50%)';} else {color='low';tier='No clasifica como IIM';}
+   return{big:s,unit:'puntos',color,tier,html:`Probable ≥ ${cutProb}${bx?' (con biopsia)':''} · definida ≥ ${cutDef}. Subclasifique DM/PM/IBM/JDM con el árbol del consenso.`};}
+ return{big:'—',unit:'',color:'info',tier:' ',html:''};
+}
+
+/* ===== Renderer ===== */
+const GC={
+ 'Cardiología':'#c0392b',
+ 'Hipertensión arterial':'#b5365a',
+ 'Trombosis / TEV':'#2563b0',
+ 'Infección / Sepsis':'#7b4ea3',
+ 'Neumología':'#157f8a',
+ 'Nefrología / Medio interno':'#937a0e',
+ 'Gastroenterología / Hepatología':'#7a5230',
+ 'Pancreatitis':'#c2620e',
+ 'Endocrino / Metabólico':'#a83279',
+ 'Neurología / ACV':'#463fa0',
+ 'Oncología — urgencias':'#6b5d2e',
+ 'Reumatología':'#2e8b57'
+};
+const nav=document.getElementById('nav'), mainEl=document.getElementById('main');
+let first=true;
+DATA.forEach(grp=>{
+ const col=GC[grp.group]||'var(--green)';
+ const g=document.createElement('div'); g.className='grp'; g.textContent=grp.group; g.style.color=col; nav.appendChild(g);
+ grp.tools.forEach(t=>{
+   const b=document.createElement('button'); b.textContent=t.name; b.dataset.id=t.id; b.dataset.name=t.name.toLowerCase(); b.dataset.color=col;
+   if(first){b.classList.add('active'); b.style.background=col;} nav.appendChild(b);
+   const sec=document.createElement('section'); sec.className='tool'+(first?' show':''); sec.id='t-'+t.id;
+   sec.innerHTML=buildTool(t,grp.group,col); mainEl.appendChild(sec);
+   first=false;
+ });
+});
+
+function buildTool(t,group,col){
+ let head=`<div class="cat" style="color:${col||'var(--rule)'}">${group} · ${t.sub}</div><h1>${t.name}</h1><p class="desc">${t.desc}</p>`+(t.note?`<div class="note">${t.note}</div>`:'');
+ if(t.kind==='ref') return head+`<div class="refbox">${t.html}</div>`;
+ if(t.kind==='classify'){
+   let opts=t.options.map((o,i)=>`<option value="${i}">${o.l}</option>`).join('');
+   return head+`<div class="panel"><div class="inputs"><div class="field"><label>Seleccione</label>
+     <select onchange="classifyResult('${t.id}',this.value)" style="max-width:280px">${opts}</select></div></div>
+     <div class="result" id="r-${t.id}"></div></div>`;
+ }
+ if(t.kind==='custom'){
+   let f=t.fields.map(fl=>{
+     if(fl.type==='tog') return `<div class="field"><label>${fl.l}${fl.hint?`<span class="hint">${fl.hint}</span>`:''}</label><span class="toggle"><input type="checkbox" id="${t.id}_${fl.id}" ${fl.def?'checked':''}><span class="track"></span></span></div>`;
+     if(fl.type==='select'){let o=fl.opts.map(x=>`<option value="${x[1]}">${x[0]}</option>`).join(''); return `<div class="field"><label>${fl.l}${fl.hint?`<span class="hint">${fl.hint}</span>`:''}</label><select id="${t.id}_${fl.id}">${o}</select></div>`;}
+     return `<div class="field"><label>${fl.l}${fl.hint?`<span class="hint">${fl.hint}</span>`:''}</label><input type="number" id="${t.id}_${fl.id}" value="${fl.def!=null?fl.def:''}" step="any"></div>`;
+   }).join('');
+   return head+`<div class="panel"><div class="inputs" oninput="runCustom('${t.id}')" onchange="runCustom('${t.id}')">${f}</div><div class="result" id="r-${t.id}"></div></div>`;
+ }
+ // sum
+ let items=t.items.map((it,i)=>{
+   if(it.opts){let o=it.opts.map(x=>`<option value="${x[1]}">${x[0]}</option>`).join(''); return `<div class="field"><label>${it.l}${it.h?`<span class="hint">${it.h}</span>`:''}</label><select id="${t.id}_${i}">${o}</select></div>`;}
+   if(it.type==='num') return `<div class="field"><label>${it.l}${it.h?`<span class="hint">${it.h}</span>`:''}</label><input type="number" id="${t.id}_${i}" value="${it.def!=null?it.def:0}" min="0" step="1"></div>`;
+   return `<div class="field"><label>${it.l}${it.h?`<span class="hint">${it.h}</span>`:''}</label><span class="toggle"><input type="checkbox" id="${t.id}_${i}"><span class="track"></span></span></div>`;
+ }).join('');
+ return head+`<div class="panel"><div class="inputs" oninput="runSum('${t.id}')" onchange="runSum('${t.id}')">${items}</div><div class="result" id="r-${t.id}"></div></div>`;
+}
+
+function paint(id,o){const el=document.getElementById('r-'+id); el.style.setProperty('--rc',C[o.color]); el.style.setProperty('--rcb',CB[o.color]);
+ el.innerHTML=`<div class="score"><div class="big">${o.big}</div><div class="unit">${o.unit||''}</div></div><div class="tier">${o.tier}</div><div class="interp">${o.html}</div>`;}
+
+function findTool(id){for(const grp of DATA)for(const t of grp.tools)if(t.id===id)return t;}
+
+function runSum(id){const t=findTool(id); let s=0;
+ t.items.forEach((it,i)=>{const el=document.getElementById(id+'_'+i);
+   if(it.opts) s+=parseFloat(el.value);
+   else if(it.type==='num') s+=(parseFloat(el.value)||0);
+   else if(el.checked) s+=it.p;});
+ const o=t.interp(s); o.big=(o.big!==undefined)?o.big:(Math.round(s*10)/10); paint(id,o);}
+
+function classifyResult(id,idx){const t=findTool(id); const o=t.options[+idx];
+ paint(id,{big:o.l.split('—')[0].trim(),unit:'',tier:o.l,color:o.color,html:o.html||'—'});}
+
+function runCustom(id){const t=findTool(id);
+ const g=key=>{const el=document.getElementById(id+'_'+key); if(!el)return undefined; if(el.type==='checkbox')return el.checked; const v=parseFloat(el.value); return isNaN(v)?el.value:v;};
+ paint(id,computeCustom(id,g));}
+
+/* init all */
+DATA.forEach(grp=>grp.tools.forEach(t=>{
+ if(t.kind==='sum') runSum(t.id);
+ else if(t.kind==='custom') runCustom(t.id);
+ else if(t.kind==='classify') classifyResult(t.id,0);
+}));
+
+/* nav */
+nav.addEventListener('click',e=>{const b=e.target.closest('button[data-id]'); if(!b)return;
+ nav.querySelectorAll('button').forEach(x=>{x.classList.remove('active'); x.style.background='';}); b.classList.add('active'); b.style.background=b.dataset.color;
+ document.querySelectorAll('.tool').forEach(s=>s.classList.remove('show'));
+ document.getElementById('t-'+b.dataset.id).classList.add('show'); window.scrollTo({top:0,behavior:'smooth'});});
+
+/* search filter */
+document.getElementById('find').addEventListener('input',e=>{const q=e.target.value.toLowerCase();
+ nav.querySelectorAll('button[data-id]').forEach(b=>{b.style.display=b.dataset.name.includes(q)?'block':'none';});
+ nav.querySelectorAll('.grp').forEach(g=>{g.style.display=q?'none':'block';});});
+
+document.getElementById('footnote').innerHTML='Herramienta de apoyo a la decisión; no sustituye el juicio clínico ni la individualización del paciente. Verifique unidades y umbrales antes de aplicar. Elementos recientes verificados: CHA₂DS₂-VA (ESC 2024), categorías AHA/ACC A–E de TEP (2026), definiciones de sepsis (Surviving Sepsis 2026), hipertensión (ESC 2024 / ACC-AHA 2025). Reemplace el nombre y los datos del consultorio antes de publicar.';
+
+var _jsn=document.getElementById('jsnotice'); if(_jsn) _jsn.style.display='none';
+</script>
+</body>
+</html>
