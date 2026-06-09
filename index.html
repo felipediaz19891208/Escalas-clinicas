@@ -93,6 +93,18 @@
   .two{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
   .two .col h4{font-size:.74rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); font-weight:700; margin-bottom:6px;}
 
+  /* tooltips de ayuda por ítem (p. ej. cómo evaluar cada punto del NIHSS) */
+  .tipwrap{position:relative; display:inline-flex; align-items:center; margin-left:7px; vertical-align:middle; cursor:help; outline:none;}
+  .tipi{display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; border-radius:50%;
+    background:var(--green-b); color:var(--green-d); border:1px solid var(--green); font-family:var(--serif); font-style:italic; font-weight:600; font-size:.74rem; line-height:1;}
+  .tipwrap:hover .tipi, .tipwrap:focus .tipi{background:var(--green); color:#fff;}
+  .tip{position:absolute; left:calc(100% + 12px); top:50%; transform:translateY(-50%);
+    width:320px; max-width:62vw; background:var(--green-d); color:#fff; font-size:.78rem; font-weight:400; line-height:1.5;
+    padding:10px 13px; border-radius:10px; box-shadow:0 14px 34px -14px rgba(0,0,0,.6);
+    opacity:0; visibility:hidden; transition:opacity .15s, visibility .15s; z-index:60; white-space:normal;}
+  .tip::before{content:""; position:absolute; right:100%; top:50%; transform:translateY(-50%); border:6px solid transparent; border-right-color:var(--green-d);}
+  .tipwrap:hover .tip, .tipwrap:focus .tip{opacity:1; visibility:visible;}
+
   footer{max-width:1180px; margin:0 auto; padding:0 30px 40px;}
   footer p{font-size:.74rem; color:var(--ink-faint); border-top:1px solid var(--line); padding-top:14px; line-height:1.6;}
 
@@ -106,13 +118,12 @@
     main{padding:16px; width:100%;}
     .panel{grid-template-columns:1fr;} .result{position:static;}
     .two{grid-template-columns:1fr;}
+    .tip{left:0; right:auto; top:calc(100% + 8px); transform:none; width:min(300px,80vw);}
+    .tip::before{right:auto; left:14px; top:auto; bottom:100%; transform:none; border-right-color:transparent; border-bottom-color:var(--green-d);}
   }
 </style>
 </head>
 <body>
-  <div id="jsnotice" style="background:#f2e7cb;color:#7a5212;border-bottom:1px solid #e0cf9e;padding:12px 16px;font-family:system-ui,-apple-system,sans-serif;font-size:14px;line-height:1.5;text-align:center;">
-    Si abajo solo ves el encabezado y no aparecen las calculadoras, estás en el visor interno de una app (p. ej. WhatsApp). Toca el botón de <b>compartir</b> o <b>⋯</b> y elige <b>"Abrir en el navegador"</b> (Safari / Chrome). Una vez en el navegador funciona en cualquier dispositivo.
-  </div>
   <div class="topbar">
     <div class="brand"><div class="name">Felipe Díaz</div><div class="sub">Medicina Interna · Escalas clínicas</div></div>
     <div class="search"><input class="find" id="find" placeholder="Buscar escala…"></div>
@@ -217,23 +228,55 @@ const DATA=[
    {l:'Clase III — Limitación marcada',color:'high',html:'Cómodo en reposo; actividad menor a la ordinaria causa síntomas.'},
    {l:'Clase IV — Síntomas en reposo',color:'high',html:'Síntomas con cualquier actividad o en reposo.'}]},
 
- {id:'stemilysis', name:'Fibrinólisis en IAMCEST', sub:'Indicaciones y contraindicaciones',
-  desc:'Referencia rápida para trombólisis en infarto con elevación del ST cuando la angioplastia primaria no está disponible en tiempo.',
+ {id:'stemilysis', name:'Fibrinólisis en IAMCEST', sub:'Diagnóstico, equivalentes y reperfusión',
+  desc:'Reconocimiento del infarto con elevación del ST (y sus equivalentes de oclusión) y referencia para la fibrinólisis cuando la ICP primaria no es oportuna.',
   kind:'ref', html:`
-   <h3>Indicación</h3>
-   <ul><li>IAMCEST dentro de las primeras 12 h de síntomas, cuando no se puede realizar ICP primaria en ≤120 min desde el diagnóstico (idealmente fibrinólisis en ≤10 min del diagnóstico).</li>
-   <li>Considerar hasta 12 h; beneficio mayor en las primeras 2–3 h.</li></ul>
-   <h3>Contraindicaciones absolutas</h3>
-   <ul><li>Hemorragia intracraneal previa (en cualquier momento) o ACV de origen desconocido.</li>
-   <li>ACV isquémico en los últimos 6 meses.</li><li>Neoplasia o malformación vascular del SNC.</li>
-   <li>Trauma/cirugía mayor o TEC importante en las últimas 3 semanas.</li>
-   <li>Sangrado gastrointestinal en el último mes.</li><li>Sangrado activo o diátesis hemorrágica conocida.</li>
-   <li>Disección aórtica.</li><li>Punción no compresible en 24 h (p. ej. biopsia hepática, punción lumbar).</li></ul>
-   <h3>Contraindicaciones relativas</h3>
-   <ul><li>AIT en los últimos 6 meses; anticoagulación oral.</li><li>Embarazo o primera semana posparto.</li>
-   <li>HTA refractaria (PAS >180 / PAD >110).</li><li>Hepatopatía avanzada, endocarditis, úlcera péptica activa.</li>
-   <li>RCP prolongada o traumática.</li></ul>
-   <p style="color:var(--ink-soft);font-size:.82rem">Adaptado de las guías ESC de IAMCEST. La ICP primaria es preferible cuando es oportuna.</p>`}
+   <h3>Definición electrocardiográfica</h3>
+   <p>Nuevo supradesnivel del ST en el punto J en <b>≥ 2 derivaciones contiguas</b>, en ausencia de HVI y de bloqueo de rama:</p>
+   <ul><li>≥ 1 mm en todas las derivaciones, salvo V2–V3.</li>
+   <li>V2–V3: ≥ 2 mm en hombres ≥ 40 a · ≥ 2.5 mm en hombres < 40 a · ≥ 1.5 mm en mujeres (cualquier edad).</li>
+   <li>Posteriores V7–V9: ≥ 0.5 mm. Derechas V3R–V4R: ≥ 0.5 mm (compromiso del VD; tómelas en todo infarto inferior).</li>
+   <li>Morfología convexa o rectilínea del ST y contexto clínico apoyan isquemia transmural.</li></ul>
+
+   <h3>Equivalentes de oclusión coronaria aguda</h3>
+   <p>Patrones sin supradesnivel "clásico" que reflejan oclusión y exigen reperfusión urgente (paradigma OMI):</p>
+   <ul><li><b>IAM posterior</b> — infradesnivel del ST ≥ 0.5 mm máximo en V1–V3, con onda R alta y T positiva en V1. Tome derivaciones posteriores V7–V9: un supra ≥ 0.5 mm lo confirma. Oclusión de circunfleja o descendente posterior.</li>
+   <li><b>Patrón de De Winter</b> — infradesnivel ascendente del ST en precordiales con ondas T altas y simétricas (± leve supra en aVR). Equivale a oclusión proximal de la descendente anterior.</li>
+   <li><b>Supra en aVR con infradesnivel difuso</b> — infra del ST en ≥ 6 derivaciones (máximo en I, II, V4–V6) con supra en <b>aVR</b> (± V1). Indica isquemia subendocárdica global por lesión de tronco izquierdo, DA proximal o enfermedad de tres vasos; obliga a angiografía urgente, aunque no es un IAMCEST por sí mismo.</li>
+   <li><b>Ondas T hiperagudas</b>, infarto del VD y <b>BRI nuevo o ritmo de marcapasos con Sgarbossa positivo</b>.</li></ul>
+
+   <h3>Criterios de Sgarbossa <span style="font-weight:400;font-size:.9rem;color:var(--ink-soft)">(BRI o ritmo de marcapasos)</span></h3>
+   <ul><li>Supradesnivel <b>concordante</b> ≥ 1 mm (misma dirección que el QRS) — <b>5 puntos</b>.</li>
+   <li>Infradesnivel <b>concordante</b> ≥ 1 mm en V1, V2 o V3 — <b>3 puntos</b>.</li>
+   <li>Supradesnivel <b>discordante</b> ≥ 5 mm (QRS predominantemente negativo) — <b>2 puntos</b>.</li></ul>
+   <p style="font-size:.85rem"><b>≥ 3 puntos</b> es muy específico de IAM (baja sensibilidad). El <b>Sgarbossa modificado (Smith)</b> sustituye el tercer criterio por un supra discordante con cociente ST/S ≤ -0.25 (la magnitud del supra ≥ 25% de la onda S precedente); con un solo criterio positivo mejora la sensibilidad.</p>
+
+   <h3>Indicación de fibrinólisis</h3>
+   <ul><li>IAMCEST o equivalente con síntomas ≤ 12 h cuando no se puede realizar ICP primaria en ≤ 120 min desde el diagnóstico.</li>
+   <li>Objetivo: fibrinolítico en ≤ 10 min del diagnóstico; mayor beneficio en las primeras 2–3 h.</li>
+   <li>Estrategia farmacoinvasiva: tras lisar, traslade siempre a un centro con ICP (angiografía en 2–24 h; rescate inmediato si la reperfusión falla).</li></ul>
+
+   <h3>Contraindicaciones</h3>
+   <div class="two">
+    <div class="col"><h4>Absolutas</h4>
+     <ul><li>Hemorragia intracraneal previa (en cualquier momento) o ACV de origen desconocido.</li>
+     <li>ACV isquémico en los últimos 6 meses.</li>
+     <li>Neoplasia o malformación vascular del SNC.</li>
+     <li>Trauma/cirugía mayor o TEC importante en las últimas 3 semanas.</li>
+     <li>Sangrado gastrointestinal en el último mes.</li>
+     <li>Sangrado activo o diátesis hemorrágica conocida.</li>
+     <li>Disección aórtica.</li>
+     <li>Punción no compresible en 24 h (p. ej. biopsia hepática, punción lumbar).</li></ul>
+    </div>
+    <div class="col"><h4>Relativas</h4>
+     <ul><li>AIT en los últimos 6 meses; anticoagulación oral.</li>
+     <li>Embarazo o primera semana posparto.</li>
+     <li>HTA refractaria (PAS > 180 o PAD > 110 mmHg).</li>
+     <li>Hepatopatía avanzada, endocarditis infecciosa, úlcera péptica activa.</li>
+     <li>RCP prolongada o traumática.</li></ul>
+    </div>
+   </div>
+   <p style="color:var(--ink-soft);font-size:.82rem">Definición según la 4.ª definición universal de IM (2018); reperfusión y contraindicaciones según ESC 2017/2023. La ICP primaria es preferible cuando es oportuna. ACC/AHA difiere en algunos plazos (p. ej. ACV isquémico < 3 meses como absoluta).</p>`}
 ]},
 
 {group:'Hipertensión arterial', tools:[
@@ -435,7 +478,70 @@ const DATA=[
    {id:'m3', l:'Menor · Infiltrados multilobares', type:'tog'},{id:'m4', l:'Menor · Confusión/desorientación', type:'tog'},
    {id:'m5', l:'Menor · Uremia (BUN ≥ 20 mg/dL)', type:'tog'},{id:'m6', l:'Menor · Leucopenia (<4000)', type:'tog'},
    {id:'m7', l:'Menor · Trombocitopenia (<100k)', type:'tog'},{id:'m8', l:'Menor · Hipotermia (<36 °C)', type:'tog'},
-   {id:'m9', l:'Menor · Hipotensión que requiere fluidos', type:'tog'}]}
+   {id:'m9', l:'Menor · Hipotensión que requiere fluidos', type:'tog'}]},
+
+ {id:'idsadfi', name:'IWGDF/IDSA — infección', sub:'Pie diabético · gravedad de la infección',
+  desc:'Gravedad de la infección de pie diabético (IWGDF/IDSA 2023). Corresponde al eje de infección de PEDIS y orienta la decisión de hospitalizar.',
+  kind:'classify', options:[
+   {l:'Grado 1 — No infectada', color:'low', html:'Sin signos ni síntomas de infección. No requiere antibióticos.'},
+   {l:'Grado 2 — Leve', color:'mid', html:'≥ 2 signos de inflamación (eritema, dolor, calor, induración o secreción purulenta) limitados a piel/TCS, con eritema ≤ 2 cm alrededor de la úlcera. Manejo habitualmente ambulatorio con antibiótico oral dirigido a cocos grampositivos.'},
+   {l:'Grado 3 — Moderada', color:'high', html:'Eritema > 2 cm o compromiso de estructuras profundas (absceso, osteomielitis, artritis séptica, fascitis) <b>sin</b> respuesta inflamatoria sistémica. Considere hospitalizar, sobre todo si hay enfermedad arterial periférica.'},
+   {l:'Grado 4 — Grave', color:'high', html:'Infección con ≥ 2 criterios de SIRS (toxicidad sistémica). Hospitalice; antibiótico IV de amplio espectro y valoración quirúrgica urgente.'}],
+  note:'Añada el modificador (O) si hay osteomielitis: grado 3(O) si < 2 criterios SIRS o 4(O) si ≥ 2. Hospitalice toda infección grave y las moderadas con comorbilidad relevante (en especial EAP). IWGDF/IDSA 2023.'},
+
+ {id:'pedis', name:'PEDIS (IWGDF)', sub:'Pie diabético · clasificación de investigación',
+  desc:'Sistema IWGDF de cinco ejes: Perfusión, Extensión, Profundidad (Depth), Infección y Sensibilidad. Pensado para investigación y comunicación estandarizada de la herida.',
+  kind:'custom', fields:[
+   {id:'perf', l:'Perfusión', type:'select', opts:[['1 — Sin EAP',1],['2 — EAP sin isquemia crítica',2],['3 — Isquemia crítica',3]]},
+   {id:'ext', l:'Extensión (área)', hint:'cm²', type:'num', def:0},
+   {id:'depth', l:'Profundidad', type:'select', opts:[['1 — Superficial (piel)',1],['2 — Fascia/músculo/tendón',2],['3 — Hueso o articulación',3]]},
+   {id:'inf', l:'Infección (grado IWGDF/IDSA)', type:'select', opts:[['1 — No infectada',1],['2 — Leve',2],['3 — Moderada',3],['4 — Grave (SIRS)',4]]},
+   {id:'sens', l:'Sensibilidad protectora', type:'select', opts:[['1 — Conservada',1],['2 — Pérdida (neuropatía)',2]]}]},
+
+ {id:'wagner', name:'Wagner — Meggitt', sub:'Pie diabético · profundidad y gangrena',
+  desc:'Clasificación clásica por profundidad de la lesión y presencia de gangrena (grados 0–5).',
+  kind:'classify', options:[
+   {l:'Grado 0 — Sin úlcera (pie de riesgo)', color:'low', html:'Piel intacta; puede haber deformidad, callo o celulitis sin solución de continuidad. Foco en prevención y descarga.'},
+   {l:'Grado 1 — Úlcera superficial', color:'low', html:'Compromete epidermis/dermis sin alcanzar tejidos profundos. Cuidado local y descarga de presión.'},
+   {l:'Grado 2 — Úlcera profunda', color:'mid', html:'Penetra a tendón, cápsula o hueso, sin absceso ni osteomielitis. Valore imagen y desbridamiento.'},
+   {l:'Grado 3 — Úlcera profunda complicada', color:'high', html:'Absceso profundo, osteomielitis o artritis séptica. Requiere desbridamiento y antibióticos; estudie el hueso.'},
+   {l:'Grado 4 — Gangrena localizada', color:'high', html:'Gangrena de antepié o talón. Evaluación vascular urgente; probable amputación parcial.'},
+   {l:'Grado 5 — Gangrena extensa', color:'high', html:'Gangrena de todo el pie. Habitualmente requiere amputación mayor.'}],
+  note:'Limitación: no gradúa de forma independiente la isquemia ni la infección, por lo que subestima el componente vascular. Se mantiene por su simplicidad y amplio uso histórico.'},
+
+ {id:'txfoot', name:'Universidad de Texas', sub:'Pie diabético · grado × estadio',
+  desc:'Clasificación bidimensional: profundidad (grado 0–III) combinada con infección o isquemia (estadio A–D). Mejor predictor pronóstico de amputación que Wagner.',
+  kind:'custom', fields:[
+   {id:'grade', l:'Grado (profundidad)', type:'select', opts:[
+     ['0 — Lesión pre/post-ulcerativa epitelizada',0],
+     ['I — Úlcera superficial (no tendón/cápsula/hueso)',1],
+     ['II — Úlcera hasta tendón o cápsula',2],
+     ['III — Úlcera hasta hueso o articulación',3]]},
+   {id:'stage', l:'Estadio (comorbilidad)', type:'select', opts:[
+     ['A — Sin infección ni isquemia','A'],
+     ['B — Con infección','B'],
+     ['C — Con isquemia','C'],
+     ['D — Infección + isquemia','D']]}]},
+
+ {id:'sanelian', name:'San Elián', sub:'Pie diabético · pronóstico de la herida',
+  desc:'Sistema de San Elián (SEWSS): 10 variables en tres dominios (anatomía, factores agravantes y afectación tisular), cada una de 1 a 3 puntos. Total 10–30. Validado para gradar gravedad y seguir la evolución.',
+  kind:'sum', items:[
+   {l:'1. Localización inicial', tip:'Zona del pie donde inició la lesión. Más distal = mejor perfusión relativa.', opts:[['Falángica/digital',1],['Metatarsal',2],['Tarsal/talón',3]]},
+   {l:'2. Aspecto topográfico', tip:'Número de caras del pie comprometidas.', opts:[['Una cara (dorsal o plantar)',1],['Dos caras',2],['Tres o más caras',3]]},
+   {l:'3. Zonas afectadas', tip:'Número de zonas anatómicas con lesión.', opts:[['Una zona',1],['Dos zonas',2],['Todo el pie (≥3)',3]]},
+   {l:'4. Isquemia', tip:'Evalúe perfusión: pulsos, llenado, ITB.', opts:[['Ausente o leve',1],['Moderada',2],['Grave',3]]},
+   {l:'5. Infección', tip:'Según gravedad clínica (concuerda con IWGDF/IDSA).', opts:[['Leve',1],['Moderada',2],['Grave/sistémica',3]]},
+   {l:'6. Edema', tip:'Extensión y causa del edema.', opts:[['Localizado/perilesional',1],['Asciende en la extremidad',2],['Bilateral o por enfermedad sistémica',3]]},
+   {l:'7. Neuropatía', tip:'Pérdida de sensibilidad protectora y deformidad.', opts:[['Inicial/leve',1],['Avanzada (pérdida protectora)',2],['Grave (deformidad/Charcot)',3]]},
+   {l:'8. Profundidad', tip:'Tejido más profundo comprometido.', opts:[['Superficial (piel)',1],['Parcial (fascia/tendón/músculo)',2],['Total (hueso/articulación)',3]]},
+   {l:'9. Área', tip:'Superficie de la úlcera.', opts:[['Pequeña (< 10 cm²)',1],['Mediana (10–40 cm²)',2],['Grande (> 40 cm²)',3]]},
+   {l:'10. Fase de cicatrización', tip:'Estado del lecho de la herida.', opts:[['Epitelización',1],['Granulación',2],['Inflamación',3]]}],
+  interp:t=>{ let color,x,m;
+   if(t<=10){color='low';x='Grado I — leve';m='Buen pronóstico de cicatrización; manejo ambulatorio guiado.';}
+   else if(t<=20){color='mid';x='Grado II — moderado';m='Riesgo intermedio para el pie; tratamiento intensivo y seguimiento estrecho.';}
+   else {color='high';x='Grado III — grave';m='Alto riesgo para la extremidad y la vida; manejo hospitalario y valoración quirúrgica/vascular.';}
+   return{tier:x+` (${t})`,color,html:m};},
+  note:'Sumatorio 10–30. Permite reevaluar la herida en el tiempo y estimar el impacto terapéutico. Martínez-de Jesús, 2010.'}
 ]},
 
 {group:'Neumología', tools:[
@@ -724,21 +830,21 @@ const DATA=[
  {id:'nihss', name:'NIHSS', sub:'Severidad del ACV agudo',
   desc:'Escala de 15 ítems (0–42). A mayor puntaje, mayor severidad.',
   kind:'sum', items:[
-   {l:'1a. Nivel de conciencia', opts:[['Alerta',0],['Somnoliento',1],['Estuporoso',2],['Coma',3]]},
-   {l:'1b. Preguntas (mes/edad)', opts:[['Ambas',0],['Una',1],['Ninguna',2]]},
-   {l:'1c. Órdenes', opts:[['Ambas',0],['Una',1],['Ninguna',2]]},
-   {l:'2. Mirada', opts:[['Normal',0],['Paresia parcial',1],['Desviación forzada',2]]},
-   {l:'3. Campos visuales', opts:[['Normal',0],['Hemianopsia parcial',1],['Completa',2],['Bilateral',3]]},
-   {l:'4. Parálisis facial', opts:[['Normal',0],['Leve',1],['Parcial',2],['Completa',3]]},
-   {l:'5a. Brazo izquierdo', opts:[['Sin caída',0],['Caída',1],['Esfuerzo vs gravedad',2],['Sin esfuerzo',3],['Sin movimiento',4]]},
-   {l:'5b. Brazo derecho', opts:[['Sin caída',0],['Caída',1],['Esfuerzo vs gravedad',2],['Sin esfuerzo',3],['Sin movimiento',4]]},
-   {l:'6a. Pierna izquierda', opts:[['Sin caída',0],['Caída',1],['Esfuerzo vs gravedad',2],['Sin esfuerzo',3],['Sin movimiento',4]]},
-   {l:'6b. Pierna derecha', opts:[['Sin caída',0],['Caída',1],['Esfuerzo vs gravedad',2],['Sin esfuerzo',3],['Sin movimiento',4]]},
-   {l:'7. Ataxia de miembros', opts:[['Ausente',0],['Un miembro',1],['Dos miembros',2]]},
-   {l:'8. Sensibilidad', opts:[['Normal',0],['Leve-moderada',1],['Severa/anestesia',2]]},
-   {l:'9. Lenguaje', opts:[['Normal',0],['Afasia leve-moderada',1],['Severa',2],['Mutismo/afasia global',3]]},
-   {l:'10. Disartria', opts:[['Normal',0],['Leve-moderada',1],['Severa',2]]},
-   {l:'11. Extinción/inatención', opts:[['Normal',0],['Una modalidad',1],['Más de una',2]]}],
+   {l:'1a. Nivel de conciencia', tip:'Estimule por voz; si no responde, use estímulo doloroso. 0 alerta · 1 somnoliento que despierta con estímulo menor · 2 requiere estímulo repetido o doloroso · 3 solo reflejos o sin respuesta. Siempre se puntúa, aun con barrera idiomática o intubación.', opts:[['Alerta',0],['Somnoliento',1],['Estuporoso',2],['Coma',3]]},
+   {l:'1b. Preguntas (mes/edad)', tip:'Pregunte el mes actual y su edad. Solo cuenta la primera respuesta; debe ser exacta. Intubado, disartria severa o barrera idiomática (no afasia) = 1. Afasia o estupor = 2.', opts:[['Ambas',0],['Una',1],['Ninguna',2]]},
+   {l:'1c. Órdenes', tip:'Pida abrir y cerrar los ojos y luego abrir y cerrar la mano no parética. Solo el primer intento. Si no comprende, demuestre el gesto y puntúe lo que ejecuta.', opts:[['Ambas',0],['Una',1],['Ninguna',2]]},
+   {l:'2. Mirada', tip:'Solo movimientos oculares horizontales, voluntarios o por reflejo oculocefálico. 1 paresia de la mirada que se corrige · 2 desviación forzada que no se vence. Parálisis aislada de un nervio craneal = 1.', opts:[['Normal',0],['Paresia parcial',1],['Desviación forzada',2]]},
+   {l:'3. Campos visuales', tip:'Campos por confrontación en los cuatro cuadrantes (amenaza o conteo de dedos). Hemianopsia = 2 · ceguera de cualquier causa = 3. Use estimulación doble simultánea si hay duda.', opts:[['Normal',0],['Hemianopsia parcial',1],['Completa',2],['Bilateral',3]]},
+   {l:'4. Parálisis facial', tip:'Pida mostrar dientes, cerrar los ojos y levantar las cejas. 1 asimetría leve (borra surco nasogeniano) · 2 parálisis de la mitad inferior · 3 parálisis facial superior e inferior.', opts:[['Normal',0],['Leve',1],['Parcial',2],['Completa',3]]},
+   {l:'5a. Brazo izquierdo', tip:'Brazo extendido a 90° (sentado) o 45° (acostado) durante 10 s. Puntúe cada lado por separado. Amputación o fusión articular = 9 (no suma al total).', opts:[['Sin caída',0],['Caída',1],['Esfuerzo vs gravedad',2],['Sin esfuerzo',3],['Sin movimiento',4]]},
+   {l:'5b. Brazo derecho', tip:'Brazo extendido a 90° (sentado) o 45° (acostado) durante 10 s. Puntúe cada lado por separado. Amputación o fusión articular = 9 (no suma al total).', opts:[['Sin caída',0],['Caída',1],['Esfuerzo vs gravedad',2],['Sin esfuerzo',3],['Sin movimiento',4]]},
+   {l:'6a. Pierna izquierda', tip:'Pierna elevada a 30° en decúbito supino durante 5 s. Puntúe cada lado por separado. Amputación o fusión articular = 9 (no suma al total).', opts:[['Sin caída',0],['Caída',1],['Esfuerzo vs gravedad',2],['Sin esfuerzo',3],['Sin movimiento',4]]},
+   {l:'6b. Pierna derecha', tip:'Pierna elevada a 30° en decúbito supino durante 5 s. Puntúe cada lado por separado. Amputación o fusión articular = 9 (no suma al total).', opts:[['Sin caída',0],['Caída',1],['Esfuerzo vs gravedad',2],['Sin esfuerzo',3],['Sin movimiento',4]]},
+   {l:'7. Ataxia de miembros', tip:'Dedo-nariz y talón-rodilla en ambos lados. Solo cuenta si la ataxia es desproporcionada a la debilidad. Ausente si hay plejia o el paciente no comprende.', opts:[['Ausente',0],['Un miembro',1],['Dos miembros',2]]},
+   {l:'8. Sensibilidad', tip:'Pinchazo en cara, brazo y pierna. Evalúe solo el déficit atribuible al ACV. 2 = pérdida severa o anestesia, o paciente cuadripléjico que no responde.', opts:[['Normal',0],['Leve-moderada',1],['Severa/anestesia',2]]},
+   {l:'9. Lenguaje', tip:'Describa una lámina, nombre objetos y lea frases. 1 afasia leve-moderada (se comprende con dificultad) · 2 severa (comunicación fragmentaria) · 3 mutismo o afasia global.', opts:[['Normal',0],['Afasia leve-moderada',1],['Severa',2],['Mutismo/afasia global',3]]},
+   {l:'10. Disartria', tip:'Pida leer o repetir palabras; evalúe la articulación, no la afasia. 1 leve-moderada · 2 ininteligible. Intubado o barrera física = 9 (no suma al total).', opts:[['Normal',0],['Leve-moderada',1],['Severa',2]]},
+   {l:'11. Extinción/inatención', tip:'Estimulación bilateral simultánea visual y táctil. 1 inatención en una modalidad · 2 en más de una o no reconoce su propia mano (anosognosia).', opts:[['Normal',0],['Una modalidad',1],['Más de una',2]]}],
   interp:t=>{ let color,x; if(t===0){color='low';x='Sin déficit';} else if(t<=4){color='low';x='Leve';} else if(t<=15){color='mid';x='Moderado';} else if(t<=20){color='high';x='Moderado-severo';} else {color='high';x='Severo';}
    return{tier:x+` (${t})`,color,html:'Guía decisiones de reperfusión y seguimiento. Documente la hora de inicio.'};}},
 
@@ -751,19 +857,39 @@ const DATA=[
    return{tier:`ASPECTS ${score}`,color,html:(score>=8?'Menor volumen de infarto; mejor pronóstico para reperfusión.':'≤7 se asocia a infarto extenso y peor pronóstico.')};}},
 
  {id:'strokelysis', name:'Trombólisis en ACV isquémico', sub:'Indicaciones y contraindicaciones',
-  desc:'Referencia para alteplasa/tenecteplasa en ACV isquémico agudo.',
+  desc:'Elegibilidad para alteplasa (o tenecteplasa) en el ACV isquémico agudo.',
   kind:'ref', html:`
-   <h3>Indicación</h3>
-   <ul><li>ACV isquémico con déficit medible, dentro de ≤4.5 h del inicio (o última vez visto sano), tras descartar hemorragia por imagen.</li>
-   <li>Trombectomía mecánica para oclusión de gran vaso, ventana extendida según imagen de perfusión.</li></ul>
-   <h3>Contraindicaciones (selección)</h3>
-   <ul><li>Hemorragia intracraneal en TC; antecedente de hemorragia intracraneal.</li>
-   <li>PA > 185/110 no controlable.</li><li>Glucemia < 50 mg/dL no corregida.</li>
-   <li>Cirugía mayor o trauma grave reciente; sangrado activo.</li>
-   <li>ACV isquémico o TEC severo en los últimos 3 meses.</li>
-   <li>Plaquetas < 100.000; anticoagulación con INR > 1.7 o DOAC reciente.</li>
-   <li>Endocarditis, disección aórtica, neoplasia intracraneal de alto riesgo.</li></ul>
-   <p style="color:var(--ink-soft);font-size:.82rem">Lista orientativa; aplique los criterios completos AHA/ASA y el juicio del equipo de stroke. El tiempo es cerebro.</p>`}
+   <h3>Indicaciones</h3>
+   <ul><li>ACV isquémico agudo con déficit neurológico medible y potencialmente incapacitante.</li>
+   <li>Inicio de síntomas (o última vez visto sano) ≤ 4.5 h, con hemorragia descartada por neuroimagen.</li>
+   <li>Edad ≥ 18 años. Entre 3 y 4.5 h el beneficio persiste pero es menor: individualice en > 80 años, NIHSS > 25, ACV previo asociado a diabetes o uso de anticoagulantes.</li>
+   <li>Inicio desconocido o del despertar: considere con criterio de mismatch en RM (DWI/FLAIR) o perfusión, en centros con experiencia.</li>
+   <li>La trombectomía no se excluye por trombolizar: en oclusión de gran vaso administre el trombolítico sin retrasar el traslado a angiografía.</li></ul>
+   <h3>Contraindicaciones</h3>
+   <div class="two">
+    <div class="col"><h4>Absolutas</h4>
+     <ul><li>Hemorragia intracraneal actual o sospecha de hemorragia subaracnoidea.</li>
+     <li>TC con hipodensidad/infarto extenso > 1/3 del territorio de la ACM.</li>
+     <li>Antecedente de hemorragia intracraneal; neoplasia intracraneal intraaxial, malformación arteriovenosa o aneurisma.</li>
+     <li>Cirugía intracraneal/intraespinal, TEC grave o ACV isquémico en los últimos 3 meses.</li>
+     <li>Sangrado interno activo o diátesis hemorrágica conocida.</li>
+     <li>Plaquetas < 100.000; INR > 1.7 o TP > 15 s; heparina en 48 h con TTPa elevado; DOAC en las últimas 48 h (salvo pruebas específicas normales).</li>
+     <li>PA > 185/110 mmHg que no se logra controlar.</li>
+     <li>Glucemia < 50 mg/dL no corregida.</li>
+     <li>Endocarditis infecciosa; disección aórtica conocida o sospechada.</li></ul>
+    </div>
+    <div class="col"><h4>Relativas / precaución</h4>
+     <ul><li>Síntomas leves no incapacitantes o mejoría rápida espontánea.</li>
+     <li>Convulsión al inicio si el déficit residual se atribuye a la crisis y no a isquemia.</li>
+     <li>Cirugía mayor o trauma grave en los 14 días previos.</li>
+     <li>Hemorragia gastrointestinal o urinaria en los 21 días previos.</li>
+     <li>Infarto agudo de miocardio en los últimos 3 meses.</li>
+     <li>Punción arterial en sitio no compresible o punción lumbar en los 7 días previos.</li>
+     <li>Embarazo y puerperio temprano.</li>
+     <li>Edad muy avanzada y NIHSS muy alto: mayor riesgo hemorrágico, pero no excluyen por sí solos.</li></ul>
+    </div>
+   </div>
+   <p style="color:var(--ink-soft);font-size:.82rem">Síntesis orientativa basada en AHA/ASA 2019 (Powers et al., Stroke 2019) y la ficha técnica de alteplasa; varias contraindicaciones clásicas se manejan hoy como advertencias individualizadas. Tenecteplasa 0.25 mg/kg en bolo es alternativa razonable, en especial previo a trombectomía. Aplique los criterios completos y el juicio del equipo de stroke: el tiempo es cerebro.</p>`}
 ]},
 
 {group:'Oncología — urgencias', tools:[
@@ -1096,6 +1222,20 @@ function computeCustom(id,g){
    s=Math.round(s*10)/10; const cutProb=bx?6.7:5.5, cutDef=bx?8.7:7.5, cutPos=bx?6.5:5.3;
    let color,tier; if(s>=cutDef){color='high';tier='IIM definida (≥ 90%)';} else if(s>=cutProb){color='high';tier='IIM probable (≥ 55%)';} else if(s>=cutPos){color='mid';tier='IIM posible (≥ 50%)';} else {color='low';tier='No clasifica como IIM';}
    return{big:s,unit:'puntos',color,tier,html:`Probable ≥ ${cutProb}${bx?' (con biopsia)':''} · definida ≥ ${cutDef}. Subclasifique DM/PM/IBM/JDM con el árbol del consenso.`};}
+ if(id==='pedis'){const p=g('perf'),e=g('ext'),d=g('depth'),i=g('inf'),s=g('sens');
+   const area=(typeof e==='number'&&e>0)?e:'?';
+   const profile='P'+p+' · E'+area+' · D'+d+' · I'+i+' · S'+s;
+   let color; if(p===3||i===4||d===3) color='high'; else if(p===2||i===3||d===2||s===2) color='mid'; else color='low';
+   return{big:'PEDIS',unit:'',color,tier:profile,html:'Perfil de cinco ejes para describir la herida de forma estandarizada. La gravedad aumenta con perfusión 3, infección 4 o profundidad ósea. El eje <b>Infección</b> equivale a la clasificación IWGDF/IDSA. No es un puntaje sumatorio.'};}
+ if(id==='txfoot'){const gr=g('grade'),st=g('stage');
+   const label=(['0','I','II','III'][gr]||'0')+st;
+   let color,risk;
+   if(st==='A'){color=(gr>=2?'mid':'low'); risk='Sin infección ni isquemia; el riesgo de amputación es bajo y aumenta con la profundidad de la herida.';}
+   else if(st==='B'){color='mid'; risk='Infección sin isquemia; riesgo intermedio. Trate la infección y reevalúe la profundidad.';}
+   else if(st==='C'){color='high'; risk='Isquemia presente; requiere evaluación vascular. Riesgo de amputación elevado.';}
+   else {color='high'; risk='Infección e isquemia coexisten: la combinación de peor pronóstico, con riesgo de amputación muy alto.';}
+   if(gr>=3&&(st==='C'||st==='D')) risk+=' Las heridas grado III en estadio C/D presentan las tasas de amputación más altas.';
+   return{big:label,unit:'grado · estadio',color,tier:'Texas '+label,html:risk};}
  return{big:'—',unit:'',color:'info',tier:' ',html:''};
 }
 
@@ -1141,15 +1281,16 @@ function buildTool(t,group,col){
    let f=t.fields.map(fl=>{
      if(fl.type==='tog') return `<div class="field"><label>${fl.l}${fl.hint?`<span class="hint">${fl.hint}</span>`:''}</label><span class="toggle"><input type="checkbox" id="${t.id}_${fl.id}" ${fl.def?'checked':''}><span class="track"></span></span></div>`;
      if(fl.type==='select'){let o=fl.opts.map(x=>`<option value="${x[1]}">${x[0]}</option>`).join(''); return `<div class="field"><label>${fl.l}${fl.hint?`<span class="hint">${fl.hint}</span>`:''}</label><select id="${t.id}_${fl.id}">${o}</select></div>`;}
-     return `<div class="field"><label>${fl.l}${fl.hint?`<span class="hint">${fl.hint}</span>`:''}</label><input type="number" id="${t.id}_${fl.id}" value="${fl.def!=null?fl.def:''}" step="any"></div>`;
+     return `<div class="field"><label>${fl.l}${fl.hint?`<span class="hint">${fl.hint}</span>`:''}</label><input type="number" id="${t.id}_${fl.id}" value="${fl.def??''}" step="any"></div>`;
    }).join('');
    return head+`<div class="panel"><div class="inputs" oninput="runCustom('${t.id}')" onchange="runCustom('${t.id}')">${f}</div><div class="result" id="r-${t.id}"></div></div>`;
  }
  // sum
  let items=t.items.map((it,i)=>{
-   if(it.opts){let o=it.opts.map(x=>`<option value="${x[1]}">${x[0]}</option>`).join(''); return `<div class="field"><label>${it.l}${it.h?`<span class="hint">${it.h}</span>`:''}</label><select id="${t.id}_${i}">${o}</select></div>`;}
-   if(it.type==='num') return `<div class="field"><label>${it.l}${it.h?`<span class="hint">${it.h}</span>`:''}</label><input type="number" id="${t.id}_${i}" value="${it.def!=null?it.def:0}" min="0" step="1"></div>`;
-   return `<div class="field"><label>${it.l}${it.h?`<span class="hint">${it.h}</span>`:''}</label><span class="toggle"><input type="checkbox" id="${t.id}_${i}"><span class="track"></span></span></div>`;
+   const tp=it.tip?`<span class="tipwrap" tabindex="0" aria-label="Cómo evaluar"><span class="tipi">i</span><span class="tip">${it.tip}</span></span>`:'';
+   if(it.opts){let o=it.opts.map(x=>`<option value="${x[1]}">${x[0]}</option>`).join(''); return `<div class="field"><label>${it.l}${it.h?`<span class="hint">${it.h}</span>`:''}${tp}</label><select id="${t.id}_${i}">${o}</select></div>`;}
+   if(it.type==='num') return `<div class="field"><label>${it.l}${it.h?`<span class="hint">${it.h}</span>`:''}${tp}</label><input type="number" id="${t.id}_${i}" value="${it.def??0}" min="0" step="1"></div>`;
+   return `<div class="field"><label>${it.l}${it.h?`<span class="hint">${it.h}</span>`:''}${tp}</label><span class="toggle"><input type="checkbox" id="${t.id}_${i}"><span class="track"></span></span></div>`;
  }).join('');
  return head+`<div class="panel"><div class="inputs" oninput="runSum('${t.id}')" onchange="runSum('${t.id}')">${items}</div><div class="result" id="r-${t.id}"></div></div>`;
 }
@@ -1191,9 +1332,7 @@ document.getElementById('find').addEventListener('input',e=>{const q=e.target.va
  nav.querySelectorAll('button[data-id]').forEach(b=>{b.style.display=b.dataset.name.includes(q)?'block':'none';});
  nav.querySelectorAll('.grp').forEach(g=>{g.style.display=q?'none':'block';});});
 
-document.getElementById('footnote').innerHTML='Herramienta de apoyo a la decisión; no sustituye el juicio clínico ni la individualización del paciente. Verifique unidades y umbrales antes de aplicar. Elementos recientes verificados: CHA₂DS₂-VA (ESC 2024), categorías AHA/ACC A–E de TEP (2026), definiciones de sepsis (Surviving Sepsis 2026), hipertensión (ESC 2024 / ACC-AHA 2025). Reemplace el nombre y los datos del consultorio antes de publicar.';
-
-var _jsn=document.getElementById('jsnotice'); if(_jsn) _jsn.style.display='none';
+document.getElementById('footnote').innerHTML='Herramienta de apoyo a la decisión; no sustituye el juicio clínico ni la individualización del paciente. Verifique unidades y umbrales antes de aplicar. Elementos recientes verificados: CHA₂DS₂-VA (ESC 2024), categorías AHA/ACC A–E de TEP (2026), definiciones de sepsis (Surviving Sepsis 2026), hipertensión (ESC 2024 / ACC-AHA 2025).';
 </script>
 </body>
 </html>
