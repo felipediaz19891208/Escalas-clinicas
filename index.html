@@ -47,6 +47,10 @@
   .tool .cat{font-size:.68rem; letter-spacing:.16em; text-transform:uppercase; color:var(--rule); font-weight:700;}
   .tool h1{font-family:var(--serif); font-weight:500; font-size:1.7rem; letter-spacing:-.01em; margin:.16em 0 .22em; color:var(--green-d);}
   .tool .desc{color:var(--ink-soft); font-size:.9rem; max-width:62ch; margin-bottom:14px;}
+  .tool .pop{display:inline-flex; align-items:center; gap:6px; font-size:.74rem; font-weight:600; color:var(--green-d);
+    background:var(--green-b); border:1px solid #cfe0d1; border-radius:99px; padding:4px 12px; margin:0 0 12px; line-height:1.35;}
+  .tool .pop::before{content:"POBLACIÓN"; font-size:.6rem; letter-spacing:.1em; font-weight:700; color:var(--green); opacity:.8;}
+  .tool .pop b{color:var(--green-d);}
   .note{background:var(--tint); border-left:3px solid var(--rule); border-radius:0 8px 8px 0; padding:10px 14px; font-size:.83rem; color:var(--ink-soft); max-width:62ch; margin-bottom:20px; line-height:1.55;}
   .note b{color:var(--green-d);}
 
@@ -747,9 +751,12 @@ const DATA=[
    {l:'INR', opts:[['<1.7',1],['1.7–2.3',2],['>2.3',3]]},
    {l:'Ascitis', opts:[['Ausente',1],['Leve-moderada',2],['Severa/refractaria',3]]},
    {l:'Encefalopatía', opts:[['Ausente',1],['Grado 1–2',2],['Grado 3–4',3]]}],
-  interp:t=>{ let cls,color,surv; if(t<=6){cls='Clase A';color='low';surv='supervivencia a 1 año ~100%';}
-   else if(t<=9){cls='Clase B';color='mid';surv='~80% a 1 año';} else {cls='Clase C';color='high';surv='~45% a 1 año';}
-   return{tier:cls+` (${t} pts)`,color,html:`Reserva hepática reducida; ${surv}.`};}},
+  interp:t=>{ let letter,color,desc,surv;
+   if(t<=6){letter='A';color='low';desc='cirrosis compensada';surv='supervivencia ~100% a 1 año (~85% a 2 años)';}
+   else if(t<=9){letter='B';color='mid';desc='compromiso funcional significativo';surv='supervivencia ~80% a 1 año (~60% a 2 años)';}
+   else {letter='C';color='high';desc='enfermedad hepática avanzada';surv='supervivencia ~45% a 1 año (~35% a 2 años)';}
+   return{big:letter, unit:`Child-Pugh · ${t} puntos`, tier:`Clase ${letter} · ${t} puntos`, color,
+    html:`<b>Child-Pugh ${letter}</b> — ${desc}; ${surv}. Orienta pronóstico, riesgo quirúrgico y ajuste de fármacos.`};}},
 
  {id:'meldna', name:'MELD-Na', sub:'Pronóstico en hepatopatía',
   desc:'Predice mortalidad a 90 días y orienta priorización. (El MELD 3.0 es el estándar de asignación actual; aquí se calcula MELD-Na.)',
@@ -913,7 +920,22 @@ const DATA=[
    <li>pH > 7.30 y bicarbonato > 18.</li>
    <li>Cetonas mínimas o ausentes; alteración del sensorio.</li></ul></div>
    </div>
-   <p style="color:var(--ink-soft);font-size:.82rem">Osm. efectiva = 2×Na + glucosa/18. Pilares: líquidos, insulina y reposición de potasio.</p>`}
+   <p style="color:var(--ink-soft);font-size:.82rem">Osm. efectiva = 2×Na + glucosa/18. Pilares: líquidos, insulina y reposición de potasio.</p>`},
+
+ {id:'bwps', name:'Burch-Wartofsky (BWPS)', sub:'Probabilidad de tormenta tiroidea',
+  pop:'adultos (≥ 18 años) con tirotoxicosis bioquímica y sospecha clínica de crisis',
+  desc:'Estima la probabilidad de que una tirotoxicosis corresponda a tormenta tiroidea, con independencia de los niveles hormonales. Es una escala empírica basada en consenso (Burch & Wartofsky, 1993): apoya la decisión clínica, no reemplaza el juicio ni es criterio diagnóstico único. Los criterios japoneses (JTA) son una alternativa más específica.',
+  kind:'sum', items:[
+   {l:'Temperatura (°C)', opts:[['< 37.2',0],['37.2–37.7',5],['37.8–38.2',10],['38.3–38.8',15],['38.9–39.2',20],['39.3–39.9',25],['≥ 40.0',30]]},
+   {l:'Disfunción del SNC', opts:[['Ausente',0],['Leve — agitación',10],['Moderada — delirium, psicosis, letargia extrema',20],['Severa — convulsiones, coma',30]]},
+   {l:'Disfunción gastrointestinal-hepática', opts:[['Ausente',0],['Moderada — diarrea, náusea/vómito, dolor abdominal',10],['Severa — ictericia inexplicada',20]]},
+   {l:'Frecuencia cardiaca (lpm)', opts:[['< 90',0],['90–109',5],['110–119',10],['120–129',15],['130–139',20],['≥ 140',25]]},
+   {l:'Insuficiencia cardiaca', opts:[['Ausente',0],['Leve — edema pedal',5],['Moderada — crépitos bibasales',10],['Severa — edema pulmonar',15]]},
+   {l:'Fibrilación auricular', opts:[['Ausente',0],['Presente',10]]},
+   {l:'Factor precipitante', h:'infección, cirugía, IAM, TEP, contraste yodado, CAD, suspensión de antitiroideos, parto…', opts:[['Ausente',0],['Presente',10]]}],
+  interp:t=>{ if(t<25) return{tier:`Poco probable (${t} pts)`,color:'low',html:'<b>&lt; 25:</b> tormenta tiroidea improbable. Estudie y trate la tirotoxicosis según su etiología (Graves, adenoma/BMN tóxico, tiroiditis, exógena).'};
+   if(t<45) return{tier:`Tormenta inminente (${t} pts)`,color:'mid',html:'<b>25–44:</b> tormenta tiroidea inminente. Inicie tionamida y control sintomático; valore monitoreo en UCI.'};
+   return{tier:`Tormenta tiroidea (${t} pts)`,color:'high',html:'<b>≥ 45:</b> altamente sugestivo de tormenta tiroidea. Manejo multimodal agresivo en UCI: tionamida (PTU/metimazol) → yodo ≥ 1 h después → β-bloqueo → corticoide → soporte. Evite el ácido acetilsalicílico.'};}}
 ]},
 
 {group:'Neurología / ACV', tools:[
@@ -1167,6 +1189,123 @@ const DATA=[
    {l:'Biológico', opts:[['No',0],['Baja',1],['Moderada',2]]}],
   interp:t=>{ let color,x; if(t<5){color='low';x='Actividad baja';} else if(t<=13){color='mid';x='Actividad moderada';} else {color='high';x='Actividad alta';}
    return{tier:x+` (${t})`,color,html:'Umbrales: baja < 5 · moderada 5–13 · alta ≥ 14.'};}}
+]},
+
+{group:'Geriatría / Funcional', tools:[
+
+ {id:'cfs', name:'Clinical Frailty Scale', sub:'Fragilidad global (Rockwood, 1–9)',
+  pop:'adultos ≥ 65 años; evalúe el estado basal (≈ 2 semanas previas), no durante el evento agudo',
+  desc:'Escala de fragilidad basada en el juicio clínico global (movilidad, función y cognición). Es la herramienta de fragilidad más incorporada en guías: cirugía de urgencia (NELA, WSES), cuidado crítico y cardiología geriátrica. Un CFS ≥ 5 marca fragilidad y suele indicar valoración geriátrica integral. Validada en ≥ 65 años; interprétela con cautela en discapacidad estable no relacionada con la edad.',
+  kind:'classify', options:[
+   {l:'1 — Muy en forma',color:'low',html:'Robusto, activo, enérgico y motivado; hace ejercicio con regularidad. De los más en forma para su edad.'},
+   {l:'2 — En forma',color:'low',html:'Sin enfermedad activa que limite; algo menos en forma que la categoría 1. Activo de manera ocasional o estacional.'},
+   {l:'3 — Se maneja bien',color:'low',html:'Problemas de salud controlados; no realiza actividad física regular más allá de caminatas de rutina.'},
+   {l:'4 — Vulnerable (fragilidad muy leve)',color:'info',html:'No dependiente para la vida diaria, pero los síntomas limitan la actividad. Suele referir estar "más lento" o cansado durante el día.'},
+   {l:'5 — Fragilidad leve',color:'mid',html:'Enlentecimiento más evidente; necesita ayuda en AIVD complejas (finanzas, transporte, tareas pesadas, medicación). CFS ≥ 5 = fragilidad → considere valoración geriátrica.'},
+   {l:'6 — Fragilidad moderada',color:'mid',html:'Necesita ayuda para todas las actividades externas y del hogar; dificultad con escaleras, requiere ayuda para el baño y quizás para vestirse.'},
+   {l:'7 — Fragilidad severa',color:'high',html:'Completamente dependiente para el autocuidado (por causa física o cognitiva), pero estable y sin riesgo alto de muerte a corto plazo.'},
+   {l:'8 — Fragilidad muy severa',color:'high',html:'Completamente dependiente, acercándose al final de la vida; típicamente no se recupera ni de una enfermedad menor.'},
+   {l:'9 — Enfermo terminal',color:'high',html:'Final de la vida, expectativa < 6 meses, sin fragilidad severa evidente por otra causa.'}]},
+
+ {id:'frail', name:'Escala FRAIL', sub:'Tamizaje de fragilidad (0–5)',
+  pop:'adultos mayores en la comunidad o el ámbito ambulatorio; tamizaje rápido autoinformado',
+  desc:'Cuestionario de 5 ítems (Fatigue, Resistance, Ambulation, Illnesses, Loss of weight), derivado del fenotipo de Fried pero sin mediciones. Recomendado como tamizaje por las guías de consenso Asia-Pacífico. Rápido y aplicable sin equipo.',
+  kind:'sum', items:[
+   {l:'Fatiga', h:'¿cansado la mayor parte del tiempo en el último mes?', p:1},
+   {l:'Resistencia', h:'¿dificultad para subir un piso de escaleras?', p:1},
+   {l:'Deambulación', h:'¿dificultad para caminar ~100 m (una cuadra)?', p:1},
+   {l:'Comorbilidad', h:'≥ 5 enfermedades (de: HTA, diabetes, cáncer, EPOC, IAM, ICC, angina, asma, artritis, ACV, ERC)', p:1},
+   {l:'Pérdida de peso', h:'> 5 % del peso en el último año', p:1}],
+  interp:t=>{ if(t===0)return{tier:'Robusto (0)',color:'low',html:'Sin fragilidad. Mantenga actividad física y prevención.'};
+   if(t<=2)return{tier:`Prefrágil (${t})`,color:'mid',html:'1–2 ítems: estado prefrágil, potencialmente reversible. Intervenga sobre ejercicio, nutrición y polifarmacia.'};
+   return{tier:`Frágil (${t})`,color:'high',html:'≥ 3 ítems: fragilidad. Considere valoración geriátrica integral y manejo individualizado según objetivos.'};}},
+
+ {id:'barthel', name:'Índice de Barthel', sub:'Independencia en ABVD (0–100)',
+  pop:'valoración funcional en ABVD — ancianos, rehabilitación, ACV, hospitalización',
+  desc:'Mide la dependencia en actividades básicas de la vida diaria. Nota importante: es una escala de estado funcional / dependencia, no un instrumento de fragilidad; se correlaciona con ella pero mide un constructo distinto. Puntaje en pasos de 5.',
+  kind:'sum', items:[
+   {l:'Alimentación', opts:[['Dependiente',0],['Necesita ayuda (cortar, untar)',5],['Independiente',10]]},
+   {l:'Baño / ducha', opts:[['Dependiente',0],['Independiente',5]]},
+   {l:'Aseo personal', h:'lavarse cara y manos, peinarse, afeitarse', opts:[['Dependiente',0],['Independiente',5]]},
+   {l:'Vestirse', opts:[['Dependiente',0],['Necesita ayuda',5],['Independiente',10]]},
+   {l:'Control intestinal', opts:[['Incontinente',0],['Accidente ocasional',5],['Continente',10]]},
+   {l:'Control vesical', opts:[['Incontinente / sondado dependiente',0],['Accidente ocasional',5],['Continente',10]]},
+   {l:'Uso del retrete', opts:[['Dependiente',0],['Necesita ayuda',5],['Independiente',10]]},
+   {l:'Traslado sillón–cama', opts:[['Incapaz, no mantiene sedestación',0],['Gran ayuda (una-dos personas)',5],['Ayuda mínima o supervisión',10],['Independiente',15]]},
+   {l:'Deambulación', opts:[['Inmóvil',0],['Independiente en silla de ruedas',5],['Camina con ayuda de una persona',10],['Independiente (puede usar bastón)',15]]},
+   {l:'Subir / bajar escaleras', opts:[['Incapaz',0],['Necesita ayuda',5],['Independiente',10]]}],
+  interp:t=>{ let color,x; if(t<=20){color='high';x='Dependencia total';} else if(t<=60){color='high';x='Dependencia grave';} else if(t<=90){color='mid';x='Dependencia moderada';} else if(t<=99){color='low';x='Dependencia leve';} else {color='low';x='Independiente';}
+   return{tier:`${x} (${t}/100)`,color,html:'Rangos orientativos: ≤ 20 total · 21–60 grave · 61–90 moderada · 91–99 leve · 100 independiente. Útil para seguir la evolución funcional.'};}},
+
+ {id:'ecog', name:'ECOG Performance Status', sub:'Estado funcional oncológico (0–4)',
+  pop:'pacientes oncológicos; orienta elegibilidad a tratamiento sistémico/ensayos y pronóstico',
+  desc:'Escala de la Eastern Cooperative Oncology Group. Estándar en oncología para describir el estado funcional. Un ECOG ≥ 3 suele contraindicar la quimioterapia citotóxica y orienta hacia un enfoque paliativo. (El grado 5 = fallecido.)',
+  kind:'classify', options:[
+   {l:'0 — Actividad normal',color:'low',html:'Asintomático; capaz de realizar toda la actividad previa a la enfermedad sin restricción.'},
+   {l:'1 — Sintomático, ambulatorio',color:'low',html:'Restringido en actividad física extenuante, pero ambulatorio y capaz de trabajo ligero o sedentario.'},
+   {l:'2 — Ambulatorio > 50 % del día',color:'mid',html:'Capaz de autocuidado pero incapaz de trabajar; levantado más del 50 % de las horas de vigilia.'},
+   {l:'3 — Autocuidado limitado',color:'high',html:'Autocuidado limitado; confinado a cama o silla más del 50 % de las horas de vigilia.'},
+   {l:'4 — Totalmente dependiente',color:'high',html:'Completamente incapacitado; sin autocuidado; totalmente confinado a cama o silla.'}]},
+
+ {id:'kps', name:'Karnofsky (KPS)', sub:'Estado funcional (0–100)',
+  pop:'oncología y cuidado paliativo; insumo del PaP y alternativa granular al ECOG',
+  desc:'Escala funcional en pasos de 10 (100 = normal; 0 = fallecido). Más granular que el ECOG (conversión aproximada: ECOG 0 ≈ KPS 90–100; 1 ≈ 70–80; 2 ≈ 50–60; 3 ≈ 30–40; 4 ≈ 10–20).',
+  kind:'classify', options:[
+   {l:'100 — Normal',color:'low',html:'Sin quejas ni evidencia de enfermedad.'},
+   {l:'90 — Actividad normal, síntomas menores',color:'low',html:'Capaz de actividad normal; signos o síntomas leves de enfermedad.'},
+   {l:'80 — Actividad normal con esfuerzo',color:'low',html:'Actividad normal con esfuerzo; algunos síntomas de enfermedad.'},
+   {l:'70 — Se cuida a sí mismo',color:'mid',html:'Se cuida a sí mismo; incapaz de actividad normal o trabajo activo.'},
+   {l:'60 — Requiere asistencia ocasional',color:'mid',html:'Requiere asistencia ocasional, pero cubre la mayoría de sus necesidades.'},
+   {l:'50 — Requiere asistencia considerable',color:'mid',html:'Requiere asistencia considerable y cuidados médicos frecuentes.'},
+   {l:'40 — Incapacitado',color:'high',html:'Incapacitado; requiere cuidados y asistencia especiales.'},
+   {l:'30 — Gravemente incapacitado',color:'high',html:'Gravemente incapacitado; hospitalización indicada, muerte no inminente.'},
+   {l:'20 — Muy enfermo',color:'high',html:'Muy enfermo; hospitalización y tratamiento de soporte activo necesarios.'},
+   {l:'10 — Moribundo',color:'high',html:'Procesos fatales progresando rápidamente.'}]}
+]},
+
+{group:'Cuidado paliativo', tools:[
+
+ {id:'pps', name:'Palliative Performance Scale', sub:'Estado funcional en paliativos (0–100 %)',
+  pop:'pacientes en cuidado paliativo; ancla funcional e insumo del PPI',
+  desc:'Adaptación de Karnofsky para paliativos (PPSv2). Integra deambulación, actividad/evidencia de enfermedad, autocuidado, ingesta y nivel de conciencia. Elija el nivel leyendo de izquierda a derecha y dando prioridad a las columnas de la izquierda.',
+  kind:'classify', options:[
+   {l:'100 % — Deambula; actividad y trabajo normales',color:'low',html:'Sin evidencia de enfermedad; autocuidado completo; ingesta normal; consciente.'},
+   {l:'90 % — Deambula; alguna evidencia de enfermedad',color:'low',html:'Actividad normal; autocuidado completo; ingesta normal; consciente.'},
+   {l:'80 % — Deambula; actividad normal con esfuerzo',color:'low',html:'Alguna enfermedad; autocuidado completo; ingesta normal o reducida; consciente.'},
+   {l:'70 % — Deambulación reducida',color:'mid',html:'Incapaz de trabajo/empleo; enfermedad significativa; autocuidado completo.'},
+   {l:'60 % — Deambulación reducida',color:'mid',html:'Incapaz de pasatiempos o tareas del hogar; asistencia ocasional; ingesta normal o reducida.'},
+   {l:'50 % — Principalmente sentado o acostado',color:'mid',html:'Incapaz de cualquier trabajo; enfermedad extensa; asistencia considerable.'},
+   {l:'40 % — Principalmente en cama',color:'high',html:'Asistencia mayoritaria; ingesta normal o reducida; conciencia plena o somnolencia ± confusión.'},
+   {l:'30 % — Confinado a la cama',color:'high',html:'Cuidado total; ingesta reducida; conciencia plena o somnolencia ± confusión.'},
+   {l:'20 % — Confinado a la cama',color:'high',html:'Cuidado total; ingesta a sorbos mínimos; conciencia plena o somnolencia ± confusión.'},
+   {l:'10 % — Confinado a la cama',color:'high',html:'Cuidado total; solo cuidados de la boca; somnoliento o en coma.'}]},
+
+ {id:'ppi', name:'Palliative Prognostic Index (PPI)', sub:'Pronóstico en cáncer avanzado (0–15)',
+  pop:'pacientes con cáncer avanzado o terminal; objetivo, sin necesidad de laboratorio',
+  desc:'Combina el PPS con cuatro variables clínicas para estimar la supervivencia a corto plazo. Ventaja: no requiere laboratorios ni predicción subjetiva. Su exactitud es aceptable pero modesta (mejor para identificar supervivencias muy cortas); validado casi exclusivamente en cáncer.',
+  kind:'sum', items:[
+   {l:'PPS (estado funcional)', opts:[['PPS ≥ 60 %',0],['PPS 30–50 %',2.5],['PPS 10–20 %',4]]},
+   {l:'Ingesta oral', opts:[['Normal',0],['Moderadamente reducida',1],['Severamente reducida (bocados o menos)',2.5]]},
+   {l:'Edema', opts:[['Ausente',0],['Presente',1]]},
+   {l:'Disnea en reposo', opts:[['Ausente',0],['Presente',3.5]]},
+   {l:'Delirium', h:'no atribuible a un único fármaco', opts:[['Ausente',0],['Presente',4]]}],
+  interp:t=>{ if(t<=4)return{tier:`Riesgo bajo (${t})`,color:'low',html:'≤ 4: supervivencia probable > 6 semanas.'};
+   if(t<=6)return{tier:`Riesgo intermedio (${t})`,color:'mid',html:'> 4 y ≤ 6: supervivencia probable < 6 semanas.'};
+   return{tier:`Riesgo alto (${t})`,color:'high',html:'> 6: supervivencia probable < 3 semanas (sensibilidad ~68 %, especificidad ~79 %).'};}},
+
+ {id:'pap', name:'Palliative Prognostic Score (PaP)', sub:'Pronóstico a 30 días en cáncer terminal (0–17.5)',
+  pop:'pacientes con cáncer terminal; requiere hemograma y predicción clínica del médico',
+  desc:'Modelo de referencia, bien validado, que estima la probabilidad de supervivencia a 30 días. Limitaciones: requiere hemograma y la predicción clínica de supervivencia (CPS) del médico —componente subjetivo y de mayor peso—, lo que introduce variabilidad. No incorpora delirium (la versión D-PaP sí, y mejora ligeramente el desempeño).',
+  kind:'sum', items:[
+   {l:'Disnea', opts:[['No',0],['Sí',1]]},
+   {l:'Anorexia', opts:[['No',0],['Sí',1.5]]},
+   {l:'Karnofsky (KPS)', opts:[['≥ 30',0],['10–20',2.5]]},
+   {l:'Predicción clínica de supervivencia', h:'estimación del médico, en semanas', opts:[['> 12 semanas',0],['11–12',2],['9–10',2.5],['7–8',2.5],['5–6',4.5],['3–4',6],['1–2',8.5]]},
+   {l:'Leucocitos totales', opts:[['Normal (≤ 8.500/mm³)',0],['Alto (8.501–11.000)',0.5],['Muy alto (> 11.000)',1.5]]},
+   {l:'Porcentaje de linfocitos', opts:[['Normal (20–40 %)',0],['Bajo (12–19.9 %)',1],['Muy bajo (0–11.9 %)',2.5]]}],
+  interp:t=>{ if(t<=5.5)return{tier:`Grupo A (${t})`,color:'low',html:'0–5.5: probabilidad de supervivencia a 30 días > 70 %.'};
+   if(t<=11)return{tier:`Grupo B (${t})`,color:'mid',html:'5.6–11: probabilidad de supervivencia a 30 días 30–70 %.'};
+   return{tier:`Grupo C (${t})`,color:'high',html:'11.1–17.5: probabilidad de supervivencia a 30 días < 30 %.'};}}
 ]}
 ];
 
@@ -1436,7 +1575,9 @@ const GC={
  'Endocrino / Metabólico':'#a83279',
  'Neurología / ACV':'#463fa0',
  'Oncología — urgencias':'#6b5d2e',
- 'Reumatología':'#2e8b57'
+ 'Reumatología':'#2e8b57',
+ 'Geriatría / Funcional':'#4e7285',
+ 'Cuidado paliativo':'#8a5a6d'
 };
 const nav=document.getElementById('nav'), mainEl=document.getElementById('main');
 let first=true;
@@ -1453,7 +1594,7 @@ DATA.forEach(grp=>{
 });
 
 function buildTool(t,group,col){
- let head=`<div class="cat" style="color:${col||'var(--rule)'}">${group} · ${t.sub}</div><h1>${t.name}</h1><p class="desc">${t.desc}</p>`+(t.note?`<div class="note">${t.note}</div>`:'');
+ let head=`<div class="cat" style="color:${col||'var(--rule)'}">${group} · ${t.sub}</div><h1>${t.name}</h1>`+(t.pop?`<div class="pop"><span>${t.pop}</span></div>`:'')+`<p class="desc">${t.desc}</p>`+(t.note?`<div class="note">${t.note}</div>`:'');
  if(t.kind==='ref') return head+`<div class="refbox">${t.html}</div>`;
  if(t.kind==='classify'){
    let opts=t.options.map((o,i)=>`<option value="${i}">${o.l}</option>`).join('');
